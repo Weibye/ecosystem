@@ -171,9 +171,11 @@ pub(crate) fn find_food(
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
+                        let pos = food_source_pos.translation();
                         cmd.entity(*actor)
                             .insert(MovementTarget {
-                                target: food_source_pos.translation(),
+                                // Project this to zero for now.
+                                target: Vec3::new(pos.x, 0.4, pos.z),
                             })
                             .insert(EatTarget {
                                 target: food_source,
