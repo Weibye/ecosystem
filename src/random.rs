@@ -1,7 +1,6 @@
-
 use bevy::prelude::Plugin;
-use rand::SeedableRng;
 use rand::rngs::SmallRng;
+use rand::SeedableRng;
 
 pub(crate) struct Random(pub SmallRng);
 

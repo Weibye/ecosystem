@@ -5,14 +5,14 @@ use agent::{
 };
 use bevy::prelude::*;
 use big_brain::prelude::*;
-use random::{RandomPlugin, Random};
+use random::{Random, RandomPlugin};
 use resource::ResourcePlugin;
-use utils::{get_rand_point_on_board};
+use utils::get_rand_point_on_board;
 
 mod agent;
+mod random;
 mod resource;
 mod utils;
-mod random;
 
 fn main() {
     App::new()
@@ -70,7 +70,7 @@ fn spawn_agent(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     board: Res<Board>,
-    mut rng: ResMut<Random>
+    mut rng: ResMut<Random>,
 ) {
     let height = 0.4;
     let point = get_rand_point_on_board(&mut rng.0, &board);

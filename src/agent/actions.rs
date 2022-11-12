@@ -7,7 +7,7 @@ use big_brain::{
     thinker::{ActionSpan, Actor},
 };
 
-use crate::{utils::closest, Hunger, resource::FoodSource};
+use crate::{resource::FoodSource, utils::closest, Hunger};
 
 // ACTIONS
 const INTERACTION_DISTANCE: f32 = 0.1;
