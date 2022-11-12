@@ -1,9 +1,9 @@
 use bevy::prelude::{
     default, shape, Assets, Changed, Color, Commands, Component, Entity, Mesh, PbrBundle, Plugin,
-    Query, Res, ResMut, StandardMaterial, Transform,
+    Query, Res, ResMut, StandardMaterial, Transform, NonSendMut,
 };
 
-use crate::{utils::get_rand_point_on_board, Board};
+use crate::{utils::{get_rand_point_on_board}, Board, random::Random};
 
 // RESOURCES
 pub(crate) struct ResourcePlugin;
@@ -32,11 +32,11 @@ fn spawn_resource(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     board: Res<Board>,
+    mut rng: ResMut<Random>
 ) {
-    let mut rng = rand::thread_rng();
 
     for _ in 0..10 {
-        let point = get_rand_point_on_board(&mut rng, &board);
+        let point = get_rand_point_on_board(&mut rng.0, &board);
         cmd.spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube {
                 size: 0.2,
