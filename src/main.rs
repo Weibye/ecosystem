@@ -5,21 +5,22 @@ use agent::{
 };
 use bevy::prelude::*;
 use big_brain::prelude::*;
-use rand::rngs::ThreadRng;
+use random::{RandomPlugin, Random};
 use resource::ResourcePlugin;
-use utils::get_rand_point_on_board;
+use utils::{get_rand_point_on_board};
 
 mod agent;
 mod resource;
 mod utils;
+mod random;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(AgentPlugin)
         .add_plugin(ResourcePlugin)
+        .add_plugin(RandomPlugin)
         .insert_resource(Board(Vec2::new(10.0, 10.0)))
-        .insert_non_send_resource(rand::thread_rng())
         .add_startup_system(setup)
         .add_startup_system(spawn_agent)
         .add_system(hunger_decay)
@@ -27,7 +28,6 @@ fn main() {
 }
 
 struct Board(pub Vec2);
-struct Random(pub ThreadRng);
 
 fn setup(
     mut cmd: Commands,
@@ -70,10 +70,10 @@ fn spawn_agent(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     board: Res<Board>,
+    mut rng: ResMut<Random>
 ) {
     let height = 0.4;
-    let mut rng = rand::thread_rng();
-    let point = get_rand_point_on_board(&mut rng, &board);
+    let point = get_rand_point_on_board(&mut rng.0, &board);
 
     let move_and_eat = Steps::build()
         .label("MoveAndEat")
