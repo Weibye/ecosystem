@@ -2,8 +2,9 @@ use bevy::prelude::Plugin;
 use big_brain::{BigBrainPlugin, BigBrainStage};
 
 use self::{
-    actions::{eat_action, find_food, move_to_target},
-    scorers::hungry_scorer,
+    actions::{drink_action, eat_action, find_drink, find_food, move_to_target},
+    needs::{hunger_decay, thirst_decay},
+    scorers::{hungry_scorer, thirsty_scorer},
 };
 
 pub(crate) mod actions;
@@ -15,9 +16,14 @@ pub(crate) struct AgentPlugin;
 impl Plugin for AgentPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(BigBrainPlugin)
-            .add_system_to_stage(BigBrainStage::Actions, eat_action)
             .add_system_to_stage(BigBrainStage::Actions, find_food)
+            .add_system_to_stage(BigBrainStage::Actions, find_drink)
+            .add_system_to_stage(BigBrainStage::Actions, eat_action)
+            .add_system_to_stage(BigBrainStage::Actions, drink_action)
             .add_system_to_stage(BigBrainStage::Actions, move_to_target)
-            .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer);
+            .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer)
+            .add_system_to_stage(BigBrainStage::Scorers, thirsty_scorer)
+            .add_system(hunger_decay)
+            .add_system(thirst_decay);
     }
 }

@@ -9,9 +9,9 @@ use big_brain::{
     thinker::{ActionSpan, Actor},
 };
 
-use crate::resource::FoodSource;
+use crate::resource::{FoodSource, WaterSource};
 
-use super::needs::Hunger;
+use super::needs::{Hunger, Thirst};
 
 const INTERACTION_DISTANCE: f32 = 0.1;
 
@@ -25,9 +25,17 @@ pub(crate) struct MoveAction;
 #[derive(Component, Debug, Clone)]
 pub(crate) struct FindFoodAction;
 
+/// Action that figures out which water-source to get.
+#[derive(Component, Debug, Clone)]
+pub(crate) struct FindDrinkAction;
+
 /// Action that eats from a food source.
 #[derive(Component, Debug, Clone)]
 pub(crate) struct EatAction;
+
+/// Action that drinks from a water source.
+#[derive(Component, Debug, Clone)]
+pub(crate) struct DrinkAction;
 
 // Action targets
 
@@ -35,6 +43,13 @@ pub(crate) struct EatAction;
 #[derive(Component, Debug, Clone)]
 pub(crate) struct EatTarget {
     /// Which entity to eat
+    pub target: Entity,
+}
+
+/// Component that contains the data of which water-source to drink.
+#[derive(Component, Debug, Clone)]
+pub(crate) struct DrinkTarget {
+    /// Which entity to drink
     pub target: Entity,
 }
 
@@ -57,6 +72,12 @@ pub(crate) struct MoveAbility {
 /// Marker component that an entity can eat food.
 #[derive(Component, Debug)]
 pub(crate) struct EatAbility {
+    pub speed: f32,
+}
+
+/// Marker component that an entity can eat food.
+#[derive(Component, Debug)]
+pub(crate) struct DrinkAbility {
     pub speed: f32,
 }
 
@@ -104,6 +125,56 @@ pub(crate) fn eat_action(
             ActionState::Success => {
                 info!("Eating completed");
                 cmd.entity(*actor).remove::<EatTarget>();
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Defines how to eat from food sources.
+pub(crate) fn drink_action(
+    mut cmd: Commands,
+    time: Res<Time>,
+    mut drinkers: Query<(&mut Thirst, &DrinkAbility, &DrinkTarget)>,
+    mut water_sources: Query<&mut WaterSource>,
+    mut drink_actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<DrinkAction>>,
+) {
+    for (Actor(actor), mut state, _) in &mut drink_actions {
+        // let _guard = span.span().enter();
+
+        match *state {
+            ActionState::Requested => *state = ActionState::Executing,
+            ActionState::Executing => {
+                info!("Drinking");
+
+                if let Ok((mut thirst, drinking_ability, drink_target)) = drinkers.get_mut(*actor) {
+                    if let Ok(mut water_source) = water_sources.get_mut(drink_target.target) {
+                        // If there's no more food, cancel the eating action.
+                        if water_source.content <= 0. {
+                            info!("No more water available.");
+                            *state = ActionState::Cancelled;
+                        }
+
+                        thirst.value -= drinking_ability.speed * time.delta_seconds();
+                        water_source.content -= drinking_ability.speed * time.delta_seconds();
+
+                        if thirst.value <= 0.0 {
+                            thirst.value = 0.0;
+                            *state = ActionState::Success;
+                        }
+                    } else {
+                        info!("The water has disappeared.");
+                        *state = ActionState::Cancelled;
+                    }
+                } else {
+                    info!("No entities exist to perform this action");
+                    *state = ActionState::Cancelled;
+                }
+            }
+            ActionState::Cancelled => *state = ActionState::Failure,
+            ActionState::Success => {
+                info!("Drinking completed");
+                cmd.entity(*actor).remove::<DrinkTarget>();
             }
             _ => {}
         }
@@ -191,6 +262,56 @@ pub(crate) fn find_food(
             }
             ActionState::Success => {
                 info!("Found food source!");
+            }
+            ActionState::Cancelled => *state = ActionState::Failure,
+            _ => {}
+        }
+    }
+}
+
+/// Defines how an agent should look for a water-source.
+pub(crate) fn find_drink(
+    mut cmd: Commands,
+    q: Query<&GlobalTransform, With<DrinkAbility>>,
+    water_sources: Query<(Entity, &GlobalTransform), With<WaterSource>>,
+    mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<FindDrinkAction>>,
+) {
+    for (Actor(actor), mut state, _) in &mut actions {
+        match *state {
+            ActionState::Requested => *state = ActionState::Executing,
+            ActionState::Executing => {
+                info!("Looking for water");
+                if let Ok(transform) = q.get(*actor) {
+                    // get the food source closes to the agent's current location
+                    if let Some((water_source, water_source_pos)) =
+                        water_sources.iter().min_by(|(_, ta), (_, tb)| {
+                            let a_distance =
+                                (ta.translation() - transform.translation()).length_squared();
+                            let b_distance =
+                                (tb.translation() - transform.translation()).length_squared();
+                            a_distance.partial_cmp(&b_distance).unwrap()
+                        })
+                    {
+                        cmd.entity(*actor)
+                            .insert(MovementTarget {
+                                target: water_source_pos.translation(),
+                            })
+                            .insert(DrinkTarget {
+                                target: water_source,
+                            });
+
+                        *state = ActionState::Success;
+                    } else {
+                        info!("No water sources are closest");
+                        *state = ActionState::Cancelled;
+                    }
+                } else {
+                    info!("No entities exist to perform this action");
+                    *state = ActionState::Cancelled;
+                }
+            }
+            ActionState::Success => {
+                info!("Found water source!");
             }
             ActionState::Cancelled => *state = ActionState::Failure,
             _ => {}

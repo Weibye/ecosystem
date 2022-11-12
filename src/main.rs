@@ -1,7 +1,10 @@
 use agent::{
-    actions::{EatAbility, EatAction, FindFoodAction, MoveAbility, MoveAction},
-    needs::{hunger_decay, Hunger},
-    scorers::Hungry,
+    actions::{
+        DrinkAbility, DrinkAction, EatAbility, EatAction, FindDrinkAction, FindFoodAction,
+        MoveAbility, MoveAction,
+    },
+    needs::{Hunger, Thirst},
+    scorers::{Hungry, Thirsty},
     AgentPlugin,
 };
 use bevy::prelude::*;
@@ -24,7 +27,6 @@ fn main() {
         .insert_resource(Board(Vec2::new(10.0, 10.0)))
         .add_startup_system(setup)
         .add_startup_system(spawn_agent)
-        .add_system(hunger_decay)
         .run();
 }
 
@@ -82,10 +84,17 @@ fn spawn_agent(
         .step(MoveAction)
         .step(EatAction);
 
+    let move_and_drink = Steps::build()
+        .label("FindDrinkMoveAndEat")
+        .step(FindDrinkAction)
+        .step(MoveAction)
+        .step(DrinkAction);
+
     let thinker = Thinker::build()
-        .label("HungryThinker")
+        .label("AgentThinker")
         .picker(FirstToScore { threshold: 0.8 })
-        .when(Hungry, move_and_eat);
+        .when(Hungry, move_and_eat)
+        .when(Thirsty, move_and_drink);
 
     // spawn the agent randomly on the board
     cmd.spawn_bundle(PbrBundle {
@@ -102,7 +111,12 @@ fn spawn_agent(
         per_second: 2.0,
         value: 75.0,
     })
+    .insert(Thirst {
+        per_second: 3.0,
+        value: 50.0,
+    })
     .insert(EatAbility { speed: 80.0 })
+    .insert(DrinkAbility { speed: 80.0 })
     .insert(MoveAbility { speed: 5.0 })
     .insert(thinker);
 
