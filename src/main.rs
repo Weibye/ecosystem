@@ -1,5 +1,6 @@
 use agent::{
-    actions::{Eat, MoveToFood},
+    actions::{EatAbility, EatAction, FindFoodAction, MoveAbility, MoveAction},
+    needs::{hunger_decay, Hunger},
     scorers::Hungry,
     AgentPlugin,
 };
@@ -76,9 +77,10 @@ fn spawn_agent(
     let point = get_rand_point_on_board(&mut rng.0, &board);
 
     let move_and_eat = Steps::build()
-        .label("MoveAndEat")
-        .step(MoveToFood { speed: 1.0 })
-        .step(Eat { per_second: 20.0 });
+        .label("FindFoodMoveAndEat")
+        .step(FindFoodAction)
+        .step(MoveAction)
+        .step(EatAction);
 
     let thinker = Thinker::build()
         .label("HungryThinker")
@@ -92,7 +94,7 @@ fn spawn_agent(
             depth: height,
             ..default()
         })),
-        material: materials.add(Color::rgb(0.7, 0.3, 0.3).into()),
+        material: materials.add(Color::rgb(0.3, 0.5, 0.5).into()),
         transform: Transform::from_xyz(point.x, height, point.y),
         ..default()
     })
@@ -100,6 +102,8 @@ fn spawn_agent(
         per_second: 2.0,
         value: 75.0,
     })
+    .insert(EatAbility { speed: 80.0 })
+    .insert(MoveAbility { speed: 5.0 })
     .insert(thinker);
 
     // with needs
@@ -110,22 +114,3 @@ fn spawn_agent(
 // When one is removed, a new one should appear
 
 // NEEDS
-
-#[derive(Component, Debug, Copy, Clone)]
-struct Hunger {
-    /// How fast the entity gets hungry.
-    pub per_second: f32,
-    /// Current value of the hunger.
-    pub value: f32,
-}
-
-/// System that decays all agents' hunger over time.
-fn hunger_decay(time: Res<Time>, mut q: Query<&mut Hunger>) {
-    for mut hunger in &mut q {
-        hunger.value += hunger.per_second * time.delta_seconds();
-
-        if hunger.value >= 100.0 {
-            hunger.value = 100.0;
-        }
-    }
-}
