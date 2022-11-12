@@ -1,10 +1,7 @@
 //! Collection of various utility functions.
 
 use bevy::prelude::{Vec2, Vec3};
-use rand::{
-    rngs::{SmallRng, StdRng},
-    Rng,
-};
+use rand::{rngs::SmallRng, Rng};
 
 use crate::Board;
 

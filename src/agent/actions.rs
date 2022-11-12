@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{info, Component, GlobalTransform, Query, Res, Transform, Vec3, With, Without},
+    prelude::{info, Component, GlobalTransform, Query, Res, Transform, With, Without},
     time::Time,
 };
 use big_brain::{
