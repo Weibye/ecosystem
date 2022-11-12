@@ -1,9 +1,9 @@
 use bevy::prelude::{
     default, shape, Assets, Changed, Color, Commands, Component, Entity, Mesh, PbrBundle, Plugin,
-    Query, Res, ResMut, StandardMaterial, Transform, NonSendMut,
+    Query, Res, ResMut, StandardMaterial, Transform,
 };
 
-use crate::{utils::{get_rand_point_on_board}, Board, random::Random};
+use crate::{random::Random, utils::get_rand_point_on_board, Board};
 
 // RESOURCES
 pub(crate) struct ResourcePlugin;
@@ -13,12 +13,6 @@ impl Plugin for ResourcePlugin {
         app.add_startup_system(spawn_resource)
             .add_system(remove_empty_food);
     }
-}
-
-#[derive(Component)]
-enum Resource {
-    Food,
-    Water,
 }
 
 #[derive(Component, Debug, Copy, Clone)]
@@ -32,16 +26,12 @@ fn spawn_resource(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     board: Res<Board>,
-    mut rng: ResMut<Random>
+    mut rng: ResMut<Random>,
 ) {
-
     for _ in 0..10 {
         let point = get_rand_point_on_board(&mut rng.0, &board);
         cmd.spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube {
-                size: 0.2,
-                ..default()
-            })),
+            mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
             material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
             transform: Transform::from_xyz(point.x, 0.3, point.y),
             ..default()

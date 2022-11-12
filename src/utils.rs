@@ -1,10 +1,9 @@
 //! Collection of various utility functions.
 
 use bevy::prelude::{Vec2, Vec3};
-use rand::{rngs::{StdRng, SmallRng}, Rng};
+use rand::{rngs::SmallRng, Rng};
 
 use crate::Board;
-
 
 /// From a set of points, return whichever point is closest to the target.
 pub(crate) fn closest(points: &mut dyn Iterator<Item = Vec3>, target: Vec3) -> Vec3 {

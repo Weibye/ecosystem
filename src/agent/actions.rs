@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{info, Component, GlobalTransform, Query, Res, Transform, Vec3, With, Without},
+    prelude::{info, Component, GlobalTransform, Query, Res, Transform, With, Without},
     time::Time,
 };
 use big_brain::{
@@ -7,7 +7,7 @@ use big_brain::{
     thinker::{ActionSpan, Actor},
 };
 
-use crate::{utils::closest, Hunger, resource::FoodSource};
+use crate::{resource::FoodSource, utils::closest, Hunger};
 
 // ACTIONS
 const INTERACTION_DISTANCE: f32 = 0.1;
