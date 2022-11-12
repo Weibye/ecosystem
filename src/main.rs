@@ -29,9 +29,6 @@ fn main() {
 
 struct Board(pub Vec2);
 
-// TODO: Find a send version of RNG
-
-
 fn setup(
     mut cmd: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

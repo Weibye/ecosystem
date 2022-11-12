@@ -5,6 +5,7 @@ use rand::rngs::SmallRng;
 
 pub(crate) struct Random(pub SmallRng);
 
+/// A plugin providing randomness functionality.
 pub(crate) struct RandomPlugin;
 
 impl Plugin for RandomPlugin {
