@@ -2,9 +2,8 @@ use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
-use landscape::LandscapePlugin;
+use landscape::{get_rand_pos, LandscapePlugin, TileSettings};
 use resource::ResourcePlugin;
-use utils::get_rand_point_on_board;
 
 mod agent;
 mod fauna;
@@ -39,19 +38,15 @@ fn main() {
         .add_plugin(FaunaPlugin)
         .add_plugin(FloraPlugin)
         .add_plugin(ResourcePlugin)
-        .insert_resource(Board(Vec2::new(10.0, 10.0)))
         .add_startup_system(setup)
         .run();
 }
 
-#[derive(Resource)]
-struct Board(pub Vec2);
-
 fn setup(
     mut cmd: Commands,
     mut rng: ResMut<GlobalRng>,
-    board: Res<Board>,
     mut writer: EventWriter<SpawnFauna>,
+    settings: Res<TileSettings>,
 ) {
     // Spawn camera
     cmd.spawn(Camera3dBundle {
@@ -77,6 +72,6 @@ fn setup(
     });
 
     writer.send(SpawnFauna {
-        position: Some(get_rand_point_on_board(&mut *rng.get_mut(), &board)),
+        position: Some(get_rand_pos(rng.get_mut(), &settings)),
     });
 }
