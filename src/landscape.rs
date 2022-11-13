@@ -82,7 +82,7 @@ fn create_tiles(
 
     // Spawn tile data
     for e in &logical_tiles {
-        cmd.spawn(e.clone());
+        cmd.spawn(*e);
     }
 
     // Spawn visual tiles
