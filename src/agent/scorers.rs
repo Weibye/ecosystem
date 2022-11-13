@@ -3,7 +3,7 @@
 use bevy::prelude::{info, Changed, Component, Query, With};
 use big_brain::{scorers::Score, thinker::Actor};
 
-use super::needs::{Hunger, Reproduction, Thirst};
+use crate::fauna::needs::{Hunger, Reproduction, Thirst};
 
 #[derive(Component, Debug, Clone)]
 pub(crate) struct Hungry;

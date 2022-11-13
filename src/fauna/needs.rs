@@ -1,7 +1,9 @@
 use bevy::{
-    prelude::{warn, Changed, Commands, Component, Entity, Query, Res},
+    prelude::{warn, Changed, Component, Entity, EventWriter, Query, Res, info},
     time::Time,
 };
+
+use super::DespawnFauna;
 
 #[derive(Component, Debug, Copy, Clone)]
 pub(crate) struct Hunger {
@@ -77,15 +79,19 @@ pub(crate) fn health_update(mut q: Query<(&mut Health, &Hunger, &Thirst)>) {
         if health.value >= 100.0 {
             health.value = 100.0
         }
+        info!("Health: {:?}", health.value);
     }
 }
 
 /// System that will despawn any entity that reaches zero health.
-pub(crate) fn death(mut cmd: Commands, q: Query<(Entity, &Health), Changed<Health>>) {
+pub(crate) fn death(
+    mut writer: EventWriter<DespawnFauna>,
+    q: Query<(Entity, &Health), Changed<Health>>,
+) {
     for (entity, health) in &q {
         if health.value <= 0.0 {
             warn!("{:?} died.", entity);
-            cmd.entity(entity).despawn();
+            writer.send(DespawnFauna { entity });
         }
     }
 }
@@ -94,9 +100,9 @@ pub(crate) fn death(mut cmd: Commands, q: Query<(Entity, &Health), Changed<Healt
 pub(crate) fn reproduction_update(mut q: Query<(&mut Reproduction, &Health), Changed<Health>>) {
     for (mut reproduction, health) in &mut q {
         let health_mod = if health.value <= 30.0 {
-            -1.0
-        } else if health.value >= 70.0 {
-            1.0
+            -0.3
+        } else if health.value >= 80.0 {
+            0.1
         } else {
             0.0
         };
