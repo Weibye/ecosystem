@@ -2,6 +2,7 @@ use bevy::prelude::{
     default, shape, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
     PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform, Vec2,
 };
+use bevy_turborand::{DelegatedRng, GlobalRng};
 use big_brain::{
     prelude::{FirstToScore, Steps},
     thinker::Thinker,
@@ -16,7 +17,6 @@ use crate::{
         scorers::{Hungry, ReproductionScore, Thirsty},
         AgentPlugin,
     },
-    random::Random,
     utils::get_rand_point_on_board,
     Board,
 };
@@ -69,7 +69,7 @@ fn spawn_agent(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     board: Res<Board>,
-    mut rng: ResMut<Random>,
+    mut rng: ResMut<GlobalRng>,
     mut events: EventReader<SpawnFauna>,
 ) {
     for event in &mut events.iter() {
@@ -78,7 +78,7 @@ fn spawn_agent(
         let spawn_point = if event.position.is_some() {
             event.position.unwrap()
         } else {
-            get_rand_point_on_board(&mut rng.0, &board)
+            get_rand_point_on_board(&mut *rng.get_mut(), &board)
         };
 
         let move_and_eat = Steps::build()
