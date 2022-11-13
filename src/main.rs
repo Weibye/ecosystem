@@ -21,6 +21,7 @@ fn main() {
         .run();
 }
 
+#[derive(Resource)]
 struct Board(pub Vec2);
 
 fn setup(
