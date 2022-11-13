@@ -843,8 +843,9 @@ dependencies = [
 
 [[package]]
 name = "big-brain"
-version = "0.14.0"
-source = "git+https://github.com/Weibye/big-brain.git?branch=bevy-0.9#5d118409180412c0b0efb6151887a3fa3dfd257c"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9b71b1b0fda97b3e5021da6982afc74f8e6f61c8c7042e240a9de63baafec40"
 dependencies = [
  "bevy",
 ]
