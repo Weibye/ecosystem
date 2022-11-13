@@ -9,6 +9,6 @@ The project uses [`Big_Brain`](https://github.com/zkat/big-brain) and the [`Bevy
 - [x] Fauna should seek out and find food when they are hungry.
 - [x] Fauna should seek out and find water when they are thirsty.
 - [x] Fauna should die if going for too long without being able to satisfy critical needs.
-- [ ] Fauna should be able to reproduce if being able to comfortably satisfy critical needs.
+- [x] Fauna should be able to reproduce if being able to comfortably satisfy critical needs.
 - [ ] Flora should respawn and spread.
 - [ ] More to come later.

@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{info, warn, Changed, Commands, Component, Entity, Query, Res},
+    prelude::{warn, Changed, Commands, Component, Entity, Query, Res},
     time::Time,
 };
 
@@ -19,6 +19,12 @@ pub(crate) struct Thirst {
 
 #[derive(Component, Debug, Copy, Clone)]
 pub(crate) struct Health {
+    pub value: f32,
+}
+
+/// Defines the agent's current reproduction need.
+#[derive(Component, Debug, Copy, Clone)]
+pub(crate) struct Reproduction {
     pub value: f32,
 }
 
@@ -71,8 +77,6 @@ pub(crate) fn health_update(mut q: Query<(&mut Health, &Hunger, &Thirst)>) {
         if health.value >= 100.0 {
             health.value = 100.0
         }
-
-        info!("Health: {:?}", health.value);
     }
 }
 
@@ -82,6 +86,24 @@ pub(crate) fn death(mut cmd: Commands, q: Query<(Entity, &Health), Changed<Healt
         if health.value <= 0.0 {
             warn!("{:?} died.", entity);
             cmd.entity(entity).despawn();
+        }
+    }
+}
+
+/// Updates the current state of the reproduction need.
+pub(crate) fn reproduction_update(mut q: Query<(&mut Reproduction, &Health), Changed<Health>>) {
+    for (mut reproduction, health) in &mut q {
+        let health_mod = if health.value <= 30.0 {
+            -1.0
+        } else if health.value >= 70.0 {
+            1.0
+        } else {
+            0.0
+        };
+        reproduction.value += health_mod;
+
+        if reproduction.value >= 100.0 {
+            reproduction.value = 100.0
         }
     }
 }
