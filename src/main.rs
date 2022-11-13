@@ -4,7 +4,6 @@ use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
 use landscape::{get_rand_pos, LandscapePlugin, TileSettings};
 use resource::ResourcePlugin;
-use utils::get_rand_point_on_board;
 
 mod agent;
 mod fauna;
@@ -39,13 +38,9 @@ fn main() {
         .add_plugin(FaunaPlugin)
         .add_plugin(FloraPlugin)
         .add_plugin(ResourcePlugin)
-        .insert_resource(Board(Vec2::new(10.0, 10.0)))
         .add_startup_system(setup)
         .run();
 }
-
-#[derive(Resource)]
-struct Board(pub Vec2);
 
 fn setup(
     mut cmd: Commands,

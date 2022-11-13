@@ -12,7 +12,7 @@ pub(crate) struct TileData {
     pub(crate) ground_type: GroundType,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) struct TilePosition {
     x: i8,
     y: i8,
@@ -121,10 +121,9 @@ pub(crate) fn pos_to_world(pos: &TilePosition, settings: &TileSettings) -> Vec3 
 
 /// Converts from world-position to tile-position.
 pub(crate) fn world_to_pos(pos: &Vec3, settings: &TileSettings) -> TilePosition {
-    // TODO: There's a severe bug here somewhere. Create tests and add them to the test suite.
     TilePosition {
-        x: ((pos.x - (settings.map_size.0 as f32 / 2.0)) / settings.tile_size) as i8,
-        y: ((pos.z - (settings.map_size.1 as f32 / 2.0)) / settings.tile_size) as i8,
+        x: ((pos.x + (settings.map_size.0 as f32 / 2.0)) / settings.tile_size) as i8,
+        y: ((pos.z + (settings.map_size.1 as f32 / 2.0)) / settings.tile_size) as i8,
         height: pos.y as i8,
     }
 }
@@ -136,5 +135,28 @@ fn get_color(ground_type: GroundType) -> Color {
         GroundType::Grass => Color::rgb(0.1, 0.7, 0.25),
         GroundType::Rock => Color::rgb(0.4, 0.45, 0.4),
         GroundType::Water => Color::rgb(0.0, 0.4, 0.6),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{pos_to_world, world_to_pos, TilePosition, TileSettings};
+
+    /// We should should be able to convert from tile-space to
+    /// world-spaceand back again and still have the same output.
+    #[test]
+    fn pos_test() {
+        let settings = TileSettings {
+            tile_size: 1.0,
+            height_layers: 1,
+            map_size: (1, 1),
+        };
+        let pos = TilePosition {
+            x: 0,
+            y: 0,
+            height: 0,
+        };
+        let translation = pos_to_world(&pos, &settings);
+        assert_eq!(world_to_pos(&translation, &settings), pos);
     }
 }
