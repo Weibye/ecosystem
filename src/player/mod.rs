@@ -62,7 +62,8 @@ fn move_player(mut q: Query<(&ActionState<Action>, &mut Transform), With<Player>
             let forward = project_to_plane(transform.forward(), Vec3::Y).normalize();
             let right = project_to_plane(transform.right(), Vec3::Y).normalize();
 
-            transform.translation += forward * axis_pair.y() * SPEED + right * axis_pair.x() * SPEED;
+            transform.translation +=
+                forward * axis_pair.y() * SPEED + right * axis_pair.x() * SPEED;
         }
     }
 }
