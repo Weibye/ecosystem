@@ -3,7 +3,7 @@ use big_brain::{BigBrainPlugin, BigBrainStage};
 
 use self::{
     actions::{drink_action, eat_action, find_drink, find_food, move_to_target},
-    needs::{hunger_decay, thirst_decay, death, health_update},
+    needs::{death, health_update, hunger_decay, thirst_decay},
     scorers::{hungry_scorer, thirsty_scorer},
 };
 

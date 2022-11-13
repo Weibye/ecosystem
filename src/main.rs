@@ -3,7 +3,7 @@ use agent::{
         DrinkAbility, DrinkAction, EatAbility, EatAction, FindDrinkAction, FindFoodAction,
         MoveAbility, MoveAction,
     },
-    needs::{Hunger, Thirst, Health},
+    needs::{Health, Hunger, Thirst},
     scorers::{Hungry, Thirsty},
     AgentPlugin,
 };
@@ -115,9 +115,7 @@ fn spawn_agent(
         per_second: 3.0,
         value: 50.0,
     })
-    .insert(Health {
-        value: 80.0
-    })
+    .insert(Health { value: 80.0 })
     .insert(EatAbility { speed: 80.0 })
     .insert(DrinkAbility { speed: 80.0 })
     .insert(MoveAbility { speed: 5.0 })
