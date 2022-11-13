@@ -2,6 +2,7 @@ use bevy::prelude::{
     default, shape, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
     PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform,
 };
+use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng};
 use big_brain::{
     prelude::{FirstToScore, Steps},
@@ -138,6 +139,7 @@ fn spawn_agent(
                 speed: lerp_range(rng.f32(), 1.5..10.0),
             },
             thinker,
+            PickableBundle::default(),
         ));
     }
 }

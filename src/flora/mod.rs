@@ -2,6 +2,7 @@ use bevy::prelude::{
     default, shape, App, Assets, Color, Commands, Mesh, PbrBundle, Plugin, Query, Res, ResMut,
     StandardMaterial, Transform,
 };
+use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
 
 use crate::{
@@ -48,6 +49,7 @@ fn spawn_food(
                     ..default()
                 },
                 FoodSource { content: rand },
+                PickableBundle::default()
             ));
         }
     }
@@ -71,6 +73,7 @@ fn spawn_water(
                     ..default()
                 },
                 WaterSource { content: 100.0 },
+                PickableBundle::default()
             ));
         }
     }
