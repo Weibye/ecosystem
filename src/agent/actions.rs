@@ -1,7 +1,6 @@
 use bevy::{
     prelude::{
-        info, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, Transform,
-        Vec2, Vec3, With,
+        info, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, Transform, Vec3, With,
     },
     time::Time,
 };

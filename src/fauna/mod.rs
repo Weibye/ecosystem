@@ -1,6 +1,6 @@
 use bevy::prelude::{
     default, shape, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
-    PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform, Vec2,
+    PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform,
 };
 use bevy_turborand::{DelegatedRng, GlobalRng};
 use big_brain::{
