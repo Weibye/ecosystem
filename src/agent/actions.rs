@@ -1,6 +1,7 @@
 use bevy::{
     prelude::{
-        info, Commands, Component, Entity, GlobalTransform, Query, Res, Transform, Vec3, With,
+        info, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, Transform,
+        Vec2, Vec3, With,
     },
     time::Time,
 };
@@ -9,9 +10,13 @@ use big_brain::{
     thinker::{ActionSpan, Actor},
 };
 
-use crate::resource::{FoodSource, WaterSource};
-
-use super::needs::{Hunger, Reproduction, Thirst};
+use crate::{
+    fauna::{
+        needs::{Hunger, Reproduction, Thirst},
+        SpawnFauna,
+    },
+    resource::{FoodSource, WaterSource},
+};
 
 const INTERACTION_DISTANCE: f32 = 0.1;
 
@@ -327,7 +332,8 @@ pub(crate) fn find_drink(
 
 /// Defines how an agent should look for a water-source.
 pub(crate) fn reproduce_action(
-    mut reproducers: Query<&mut Reproduction>,
+    mut writer: EventWriter<SpawnFauna>,
+    mut reproducers: Query<(&mut Reproduction, &GlobalTransform)>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<ReproduceAction>>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
@@ -335,11 +341,15 @@ pub(crate) fn reproduce_action(
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
                 info!("Reproducing");
-                if let Ok(mut reproducer) = reproducers.get_mut(*actor) {
+                if let Ok((mut reproducer, transform)) = reproducers.get_mut(*actor) {
                     if reproducer.value >= 100.0 {
                         info!("SUCESS!");
                         *state = ActionState::Success;
                         reproducer.value = 0.0;
+                        let current_position = transform.translation();
+                        writer.send(SpawnFauna {
+                            position: Some(Vec2::new(current_position.x, current_position.y)),
+                        })
                     } else {
                         *state = ActionState::Cancelled;
                     }
