@@ -1,18 +1,11 @@
-use bevy::prelude::{
-    default, shape, Assets, Changed, Color, Commands, Component, Entity, Mesh, PbrBundle, Plugin,
-    Query, Res, ResMut, StandardMaterial, Transform,
-};
-use bevy_turborand::{DelegatedRng, GlobalRng};
-
-use crate::{utils::get_rand_point_on_board, Board};
+use bevy::prelude::{Changed, Commands, Component, Entity, Plugin, Query};
 
 // RESOURCES
 pub(crate) struct ResourcePlugin;
 
 impl Plugin for ResourcePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(spawn_resource)
-            .add_system(remove_empty_food)
+        app.add_system(remove_empty_food)
             .add_system(remove_empty_water);
     }
 }
@@ -27,41 +20,6 @@ pub(crate) struct FoodSource {
 pub(crate) struct WaterSource {
     /// How much water this contains
     pub content: f32,
-}
-
-fn spawn_resource(
-    mut cmd: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    board: Res<Board>,
-    mut rng: ResMut<GlobalRng>,
-) {
-    // FOOD
-    for _ in 0..10 {
-        let point = get_rand_point_on_board(&mut *rng.get_mut(), &board);
-        cmd.spawn((
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
-                material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
-                transform: Transform::from_xyz(point.x, 1.3, point.y),
-                ..default()
-            },
-            FoodSource { content: 5.0 },
-        ));
-    }
-    // WATER
-    for _ in 0..10 {
-        let point = get_rand_point_on_board(&mut *rng.get_mut(), &board);
-        cmd.spawn((
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
-                material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
-                transform: Transform::from_xyz(point.x, 1.3, point.y),
-                ..default()
-            },
-            WaterSource { content: 100.0 },
-        ));
-    }
 }
 
 /// Removes any food that have become empty.
