@@ -1,10 +1,10 @@
 use agent::{
     actions::{
         DrinkAbility, DrinkAction, EatAbility, EatAction, FindDrinkAction, FindFoodAction,
-        MoveAbility, MoveAction,
+        MoveAbility, MoveAction, ReproduceAction,
     },
-    needs::{Health, Hunger, Thirst},
-    scorers::{Hungry, Thirsty},
+    needs::{Health, Hunger, Reproduction, Thirst},
+    scorers::{Hungry, ReproductionScore, Thirsty},
     AgentPlugin,
 };
 use bevy::prelude::*;
@@ -94,7 +94,8 @@ fn spawn_agent(
         .label("AgentThinker")
         .picker(FirstToScore { threshold: 0.8 })
         .when(Hungry, move_and_eat)
-        .when(Thirsty, move_and_drink);
+        .when(Thirsty, move_and_drink)
+        .when(ReproductionScore, ReproduceAction);
 
     // spawn the agent randomly on the board
     cmd.spawn_bundle(PbrBundle {
@@ -115,6 +116,7 @@ fn spawn_agent(
         per_second: 3.0,
         value: 50.0,
     })
+    .insert(Reproduction { value: 50.0 })
     .insert(Health { value: 80.0 })
     .insert(EatAbility { speed: 80.0 })
     .insert(DrinkAbility { speed: 80.0 })
@@ -123,9 +125,3 @@ fn spawn_agent(
 
     // with needs
 }
-
-// Resources: Food + Water
-// Keep track of how many resources there is of any given type.
-// When one is removed, a new one should appear
-
-// NEEDS

@@ -11,7 +11,7 @@ use big_brain::{
 
 use crate::resource::{FoodSource, WaterSource};
 
-use super::needs::{Hunger, Thirst};
+use super::needs::{Hunger, Reproduction, Thirst};
 
 const INTERACTION_DISTANCE: f32 = 0.1;
 
@@ -36,6 +36,10 @@ pub(crate) struct EatAction;
 /// Action that drinks from a water source.
 #[derive(Component, Debug, Clone)]
 pub(crate) struct DrinkAction;
+
+/// Action that reproduces and spawn an offspring.
+#[derive(Component, Debug, Clone)]
+pub(crate) struct ReproduceAction;
 
 // Action targets
 
@@ -316,6 +320,41 @@ pub(crate) fn find_drink(
                 info!("Found water source!");
             }
             ActionState::Cancelled => *state = ActionState::Failure,
+            _ => {}
+        }
+    }
+}
+
+/// Defines how an agent should look for a water-source.
+pub(crate) fn reproduce_action(
+    mut reproducers: Query<&mut Reproduction>,
+    mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<ReproduceAction>>,
+) {
+    for (Actor(actor), mut state, _) in &mut actions {
+        match *state {
+            ActionState::Requested => *state = ActionState::Executing,
+            ActionState::Executing => {
+                info!("Reproducing");
+                if let Ok(mut reproducer) = reproducers.get_mut(*actor) {
+                    if reproducer.value >= 100.0 {
+                        info!("SUCESS!");
+                        *state = ActionState::Success;
+                        reproducer.value = 0.0;
+                    } else {
+                        *state = ActionState::Cancelled;
+                    }
+                } else {
+                    info!("No reproducer to perform this action.");
+                    *state = ActionState::Cancelled;
+                }
+            }
+            ActionState::Cancelled => {
+                info!("Reproduction cancelled.");
+                *state = ActionState::Failure;
+            }
+            ActionState::Success => {
+                info!("Sucessfully reproduced!");
+            }
             _ => {}
         }
     }
