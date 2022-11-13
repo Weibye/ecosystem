@@ -2,8 +2,9 @@ use bevy::prelude::{
     default, shape, Assets, Changed, Color, Commands, Component, Entity, Mesh, PbrBundle, Plugin,
     Query, Res, ResMut, StandardMaterial, Transform,
 };
+use bevy_turborand::{DelegatedRng, GlobalRng};
 
-use crate::{random::Random, utils::get_rand_point_on_board, Board};
+use crate::{utils::get_rand_point_on_board, Board};
 
 // RESOURCES
 pub(crate) struct ResourcePlugin;
@@ -33,11 +34,11 @@ fn spawn_resource(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     board: Res<Board>,
-    mut rng: ResMut<Random>,
+    mut rng: ResMut<GlobalRng>,
 ) {
     // FOOD
     for _ in 0..10 {
-        let point = get_rand_point_on_board(&mut rng.0, &board);
+        let point = get_rand_point_on_board(&mut *rng.get_mut(), &board);
         cmd.spawn((
             PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
@@ -50,7 +51,7 @@ fn spawn_resource(
     }
     // WATER
     for _ in 0..10 {
-        let point = get_rand_point_on_board(&mut rng.0, &board);
+        let point = get_rand_point_on_board(&mut *rng.get_mut(), &board);
         cmd.spawn((
             PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),

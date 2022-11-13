@@ -1,7 +1,9 @@
 //! Collection of various utility functions.
 
+use std::ops::Range;
+
 use bevy::prelude::{Vec2, Vec3};
-use rand::{rngs::SmallRng, Rng};
+use bevy_turborand::{rng::Rng, TurboRand};
 
 use crate::Board;
 
@@ -18,11 +20,19 @@ pub(crate) fn closest(points: &mut dyn Iterator<Item = Vec3>, target: Vec3) -> V
 }
 
 /// Gets a random point on the board
-pub(crate) fn get_rand_point_on_board(rng: &mut SmallRng, board: &Board) -> Vec2 {
+pub(crate) fn get_rand_point_on_board(rng: &mut Rng, board: &Board) -> Vec2 {
     let half_x = board.0.x / 2.0;
     let half_y = board.0.y / 2.0;
     Vec2::new(
-        rng.gen_range(-half_x..=half_x),
-        rng.gen_range(-half_y..=half_y),
+        lerp_range(rng.f32(), -half_x..half_x),
+        lerp_range(rng.f32(), -half_y..half_y),
     )
+}
+
+pub(crate) fn lerp(value: f32, min: f32, max: f32) -> f32 {
+    min + value * (max - min)
+}
+
+pub(crate) fn lerp_range(value: f32, range: Range<f32>) -> f32 {
+    range.start + value * (range.end - range.start)
 }

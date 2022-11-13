@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 bevy = "0.9.0"
 big-brain = { git = "https://github.com/Weibye/big-brain.git", branch = "bevy-0.9" }
-rand = { version = "0.8.5", features = ["small_rng"] }
+bevy_turborand = "0.4.0"
