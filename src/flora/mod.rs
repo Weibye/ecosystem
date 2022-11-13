@@ -49,7 +49,7 @@ fn spawn_food(
                     ..default()
                 },
                 FoodSource { content: rand },
-                PickableBundle::default()
+                PickableBundle::default(),
             ));
         }
     }
@@ -73,7 +73,7 @@ fn spawn_water(
                     ..default()
                 },
                 WaterSource { content: 100.0 },
-                PickableBundle::default()
+                PickableBundle::default(),
             ));
         }
     }
