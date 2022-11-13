@@ -4,20 +4,22 @@ use bevy::prelude::{
 };
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
 
+use crate::AppStage;
+
 #[derive(Component, Copy, Clone, Debug)]
 pub(crate) struct TileData {
-    position: TilePosition,
-    ground_type: GroundType,
+    pub(crate) position: TilePosition,
+    pub(crate) ground_type: GroundType,
 }
 
 #[derive(Copy, Clone, Debug)]
-struct TilePosition {
+pub(crate) struct TilePosition {
     x: i8,
     y: i8,
     height: i8,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub(crate) enum GroundType {
     Grass,
     Rock,
@@ -39,9 +41,9 @@ impl Default for LandscapePlugin {
 }
 
 #[derive(Resource)]
-struct TileSettings {
-    tile_size: f32,
-    map_size: (i8, i8),
+pub(crate) struct TileSettings {
+    pub(crate) tile_size: f32,
+    pub(crate) map_size: (i8, i8),
 }
 
 impl Plugin for LandscapePlugin {
@@ -50,7 +52,7 @@ impl Plugin for LandscapePlugin {
             tile_size: self.tile_size,
             map_size: self.map_size,
         })
-        .add_startup_system(create_tiles);
+        .add_startup_system_to_stage(AppStage::SeedBoard, create_tiles);
     }
 }
 
@@ -99,7 +101,7 @@ fn create_tiles(
 }
 
 /// Converts from a tile-position to a world-position.
-fn pos_to_world(pos: &TilePosition, settings: &TileSettings) -> Vec3 {
+pub(crate) fn pos_to_world(pos: &TilePosition, settings: &TileSettings) -> Vec3 {
     Vec3::new(
         pos.x as f32 * settings.tile_size - settings.map_size.0 as f32 / 2.0,
         pos.height as f32,
