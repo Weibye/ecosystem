@@ -15,6 +15,7 @@ use crate::{
         needs::{Hunger, Reproduction, Thirst},
         SpawnFauna,
     },
+    landscape::{world_to_pos, TileSettings},
     resource::{FoodSource, WaterSource},
 };
 
@@ -335,6 +336,7 @@ pub(crate) fn reproduce_action(
     mut writer: EventWriter<SpawnFauna>,
     mut reproducers: Query<(&mut Reproduction, &GlobalTransform)>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<ReproduceAction>>,
+    settings: Res<TileSettings>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
@@ -346,9 +348,9 @@ pub(crate) fn reproduce_action(
                         info!("SUCESS!");
                         *state = ActionState::Success;
                         reproducer.value = 0.0;
-                        let current_position = transform.translation();
+                        let spawn_pos = world_to_pos(&transform.translation(), &settings);
                         writer.send(SpawnFauna {
-                            position: Some(Vec2::new(current_position.x, current_position.y)),
+                            position: Some(spawn_pos),
                         })
                     } else {
                         *state = ActionState::Cancelled;

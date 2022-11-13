@@ -2,7 +2,7 @@ use bevy::prelude::{
     default, shape, Assets, Color, Commands, Component, Mesh, PbrBundle, Plugin, Res, ResMut,
     Resource, StandardMaterial, Transform, Vec3,
 };
-use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
+use bevy_turborand::{rng::Rng, DelegatedRng, GlobalRng, TurboRand};
 
 use crate::AppStage;
 
@@ -43,6 +43,7 @@ impl Default for LandscapePlugin {
 #[derive(Resource)]
 pub(crate) struct TileSettings {
     pub(crate) tile_size: f32,
+    pub(crate) height_layers: i8,
     pub(crate) map_size: (i8, i8),
 }
 
@@ -51,6 +52,7 @@ impl Plugin for LandscapePlugin {
         app.insert_resource(TileSettings {
             tile_size: self.tile_size,
             map_size: self.map_size,
+            height_layers: 1,
         })
         .add_startup_system_to_stage(AppStage::SeedBoard, create_tiles);
     }
@@ -100,6 +102,14 @@ fn create_tiles(
     }
 }
 
+pub(crate) fn get_rand_pos(rng: &mut Rng, settings: &TileSettings) -> TilePosition {
+    TilePosition {
+        x: rng.i8(0..settings.map_size.0),
+        y: rng.i8(0..settings.map_size.1),
+        height: rng.i8(0..settings.height_layers),
+    }
+}
+
 /// Converts from a tile-position to a world-position.
 pub(crate) fn pos_to_world(pos: &TilePosition, settings: &TileSettings) -> Vec3 {
     Vec3::new(
@@ -109,9 +119,15 @@ pub(crate) fn pos_to_world(pos: &TilePosition, settings: &TileSettings) -> Vec3 
     )
 }
 
-// fn world_to_pos(pos: &Vec3, settings: &TileSettings) -> TilePosition {
-//     TilePosition { x: (), y: (), height: () }
-// }
+/// Converts from world-position to tile-position.
+pub(crate) fn world_to_pos(pos: &Vec3, settings: &TileSettings) -> TilePosition {
+    // TODO: There's a severe bug here somewhere. Create tests and add them to the test suite.
+    TilePosition {
+        x: ((pos.x - (settings.map_size.0 as f32 / 2.0)) / settings.tile_size) as i8,
+        y: ((pos.z - (settings.map_size.1 as f32 / 2.0)) / settings.tile_size) as i8,
+        height: pos.y as i8,
+    }
+}
 
 /// Gets the corresponding material color for a `GroundType`.
 /// TODO: Replace with actual textures and assets.
