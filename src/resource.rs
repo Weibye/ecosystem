@@ -55,7 +55,7 @@ fn spawn_resource(
             transform: Transform::from_xyz(point.x, 1.3, point.y),
             ..default()
         })
-        .insert(WaterSource { content: 5.0 });
+        .insert(WaterSource { content: 100.0 });
     }
 }
 
