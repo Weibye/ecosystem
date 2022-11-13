@@ -2,6 +2,7 @@ use bevy::prelude::{
     default, shape, Assets, Color, Commands, Component, Mesh, PbrBundle, Plugin, Res, ResMut,
     Resource, StandardMaterial, Transform, Vec3,
 };
+use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{rng::Rng, DelegatedRng, GlobalRng, TurboRand};
 
 use crate::AppStage;
@@ -91,14 +92,17 @@ fn create_tiles(
 
     // Spawn visual tiles
     for e in &logical_tiles {
-        cmd.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane {
-                size: settings.tile_size,
-            })),
-            material: materials.add(get_color(e.ground_type).into()),
-            transform: Transform::from_translation(pos_to_world(&e.position, &settings)),
-            ..default()
-        });
+        cmd.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Plane {
+                    size: settings.tile_size,
+                })),
+                material: materials.add(get_color(e.ground_type).into()),
+                transform: Transform::from_translation(pos_to_world(&e.position, &settings)),
+                ..default()
+            },
+            PickableBundle::default(),
+        ));
     }
 }
 
