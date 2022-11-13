@@ -1,7 +1,8 @@
-use bevy::prelude::Plugin;
+use bevy::prelude::{Plugin, Resource};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
+#[derive(Resource)]
 pub(crate) struct Random(pub SmallRng);
 
 /// A plugin providing randomness functionality.

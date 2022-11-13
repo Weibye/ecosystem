@@ -1,7 +1,6 @@
 use bevy::prelude::{
-    default, shape, Assets, Color, Commands, Entity, EventReader, Mesh,
-    ParallelSystemDescriptorCoercion, PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform,
-    Vec2,
+    default, shape, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
+    PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform, Vec2,
 };
 use big_brain::{
     prelude::{FirstToScore, Steps},
@@ -102,29 +101,31 @@ fn spawn_agent(
             .when(ReproductionScore, ReproduceAction);
 
         // spawn the agent randomly on the board
-        cmd.spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Capsule {
-                radius: 0.2,
-                depth: height,
+        cmd.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Capsule {
+                    radius: 0.2,
+                    depth: height,
+                    ..default()
+                })),
+                material: materials.add(Color::rgb(0.3, 0.5, 0.5).into()),
+                transform: Transform::from_xyz(spawn_point.x, height, spawn_point.y),
                 ..default()
-            })),
-            material: materials.add(Color::rgb(0.3, 0.5, 0.5).into()),
-            transform: Transform::from_xyz(spawn_point.x, height, spawn_point.y),
-            ..default()
-        })
-        .insert(Hunger {
-            per_second: 1.0,
-            value: 75.0,
-        })
-        .insert(Thirst {
-            per_second: 3.0,
-            value: 50.0,
-        })
-        .insert(Reproduction { value: 50.0 })
-        .insert(Health { value: 80.0 })
-        .insert(EatAbility { speed: 80.0 })
-        .insert(DrinkAbility { speed: 80.0 })
-        .insert(MoveAbility { speed: 5.0 })
-        .insert(thinker);
+            },
+            Hunger {
+                per_second: 1.0,
+                value: 75.0,
+            },
+            Thirst {
+                per_second: 3.0,
+                value: 50.0,
+            },
+            Reproduction { value: 50.0 },
+            Health { value: 80.0 },
+            EatAbility { speed: 80.0 },
+            DrinkAbility { speed: 80.0 },
+            MoveAbility { speed: 5.0 },
+            thinker,
+        ));
     }
 }

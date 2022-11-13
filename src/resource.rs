@@ -38,24 +38,28 @@ fn spawn_resource(
     // FOOD
     for _ in 0..10 {
         let point = get_rand_point_on_board(&mut rng.0, &board);
-        cmd.spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
-            material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
-            transform: Transform::from_xyz(point.x, 1.3, point.y),
-            ..default()
-        })
-        .insert(FoodSource { content: 5.0 });
+        cmd.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+                material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
+                transform: Transform::from_xyz(point.x, 1.3, point.y),
+                ..default()
+            },
+            FoodSource { content: 5.0 },
+        ));
     }
-
+    // WATER
     for _ in 0..10 {
         let point = get_rand_point_on_board(&mut rng.0, &board);
-        cmd.spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
-            material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
-            transform: Transform::from_xyz(point.x, 1.3, point.y),
-            ..default()
-        })
-        .insert(WaterSource { content: 100.0 });
+        cmd.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+                material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
+                transform: Transform::from_xyz(point.x, 1.3, point.y),
+                ..default()
+            },
+            WaterSource { content: 100.0 },
+        ));
     }
 }
 

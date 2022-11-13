@@ -21,6 +21,7 @@ fn main() {
         .run();
 }
 
+#[derive(Resource)]
 struct Board(pub Vec2);
 
 fn setup(
@@ -32,13 +33,13 @@ fn setup(
     mut writer: EventWriter<SpawnFauna>,
 ) {
     // Spawn camera
-    cmd.spawn_bundle(Camera3dBundle {
+    cmd.spawn(Camera3dBundle {
         transform: Transform::from_xyz(10.0, 10.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 
     // Spawn ground
-    cmd.spawn_bundle(PbrBundle {
+    cmd.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
         material: materials.add(Color::rgb(0.2, 1.0, 0.3).into()),
         ..default()
@@ -51,7 +52,7 @@ fn setup(
     });
 
     // Spawn light
-    cmd.spawn_bundle(DirectionalLightBundle {
+    cmd.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 10_000.0,
             shadows_enabled: true,
