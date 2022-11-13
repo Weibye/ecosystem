@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Component, Query, Res, Changed, Entity, Commands, warn},
+    prelude::{Component, Query, Res, Changed, Entity, Commands, warn, info},
     time::Time,
 };
 
@@ -23,6 +23,8 @@ pub(crate) struct Health {
 }
 
 /// System that decays all agents' hunger over time.
+/// TODO: Should change based on how much effort the agent is spending.
+/// TODO: Should change based on external factors such as temperature and humidity.
 pub(crate) fn hunger_decay(time: Res<Time>, mut q: Query<&mut Hunger>) {
     for mut hunger in &mut q {
         hunger.value += hunger.per_second * time.delta_seconds();
@@ -33,7 +35,9 @@ pub(crate) fn hunger_decay(time: Res<Time>, mut q: Query<&mut Hunger>) {
     }
 }
 
-/// System that decays all agents' hunger over time.
+/// System that decays all agents' thirst over time.
+/// TODO: Should change based on how much effort the agent is spending.
+/// TODO: Should change based on external factors such as temperature and humidity.
 pub(crate) fn thirst_decay(time: Res<Time>, mut q: Query<&mut Thirst>) {
     for mut thirst in &mut q {
         thirst.value += thirst.per_second * time.delta_seconds();
@@ -44,14 +48,17 @@ pub(crate) fn thirst_decay(time: Res<Time>, mut q: Query<&mut Thirst>) {
     }
 }
 
+/// Update health based on the current state of the agent's needs.
 pub(crate) fn health_update(mut q: Query<(&mut Health, &Hunger, &Thirst)>) {
     for (mut health, hunger, thirst) in &mut q {
-        let hunger_mod = if hunger.value >= 80.0 { -0.5 } else { 0.5 };
-        let thirst_mod = if thirst.value >= 80.0 { -1.0 } else { 1.0 };
+        let hunger_mod = if hunger.value <= 30.0 { 0.1 } else if hunger.value >= 90.0 { -0.1 } else { 0.0 };
+        let thirst_mod = if thirst.value <= 30.0 { 0.3 } else if thirst.value >= 90.0 { -0.3 } else { 0.0 };
         
         health.value += hunger_mod + thirst_mod;
 
         if health.value >= 100.0 { health.value = 100.0 }
+
+        info!("Health: {:?}", health.value);
     }
 }
 

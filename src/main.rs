@@ -108,7 +108,7 @@ fn spawn_agent(
         ..default()
     })
     .insert(Hunger {
-        per_second: 2.0,
+        per_second: 1.0,
         value: 75.0,
     })
     .insert(Thirst {
