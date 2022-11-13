@@ -1,6 +1,7 @@
 use bevy::prelude::{
-    default, shape, Assets, Color, Commands, Entity, EventReader, Mesh, PbrBundle, Plugin, Res,
-    ResMut, StandardMaterial, Transform, Vec2, ParallelSystemDescriptorCoercion,
+    default, shape, Assets, Color, Commands, Entity, EventReader, Mesh,
+    ParallelSystemDescriptorCoercion, PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform,
+    Vec2,
 };
 use big_brain::{
     prelude::{FirstToScore, Steps},
