@@ -79,7 +79,7 @@ pub(crate) fn health_update(mut q: Query<(&mut Health, &Hunger, &Thirst)>) {
         if health.value >= 100.0 {
             health.value = 100.0
         }
-        info!("Health: {:?}", health.value);
+        // info!("Health: {:?}", health.value);
     }
 }
 
