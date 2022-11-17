@@ -1,7 +1,7 @@
-use bevy::prelude::{
+use bevy::{prelude::{
     default, shape, Assets, Color, Commands, Component, Mesh, PbrBundle, Plugin, Res, ResMut,
-    Resource, StandardMaterial, Transform, Vec3,
-};
+    Resource, StandardMaterial, Transform, Vec3, AssetServer,
+}, scene::SceneBundle};
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{rng::Rng, DelegatedRng, GlobalRng, TurboRand};
 
@@ -50,12 +50,28 @@ pub(crate) struct TileSettings {
 
 impl Plugin for LandscapePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(TileSettings {
-            tile_size: self.tile_size,
-            map_size: self.map_size,
-            height_layers: 1,
-        })
-        .add_startup_system_to_stage(AppStage::SeedBoard, create_tiles);
+        app
+            .insert_resource(TileSettings {
+                tile_size: self.tile_size,
+                map_size: self.map_size,
+                height_layers: 1,
+            })
+            .add_startup_system_to_stage(AppStage::SeedBoard, create_tiles)
+            .add_startup_system(spawn_cube);
+    }
+}
+
+fn spawn_cube(mut cmd: Commands, asset_server: Res<AssetServer>, settings: Res<TileSettings>) {
+    let asset = asset_server.load("cube.glb#Scene0");
+
+    for x in 0..settings.map_size.0 {
+        for y in 0..settings.map_size.1 {
+            cmd.spawn(SceneBundle {
+                scene: asset.clone(),
+                transform: Transform::from_xyz(x as f32, 2.0, y as f32),
+                ..default()
+            });
+        }
     }
 }
 
