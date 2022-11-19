@@ -6,7 +6,7 @@ use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
 
 use crate::{
-    landscape::{pos_to_world, GroundType, TileData, TileSettings},
+    map::{pos_to_world, GroundType, TileData, TileSettings},
     resource::{FoodSource, WaterSource},
     utils::lerp_range,
     AppStage,

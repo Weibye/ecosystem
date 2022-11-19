@@ -15,7 +15,7 @@ use crate::{
         needs::{Hunger, Reproduction, Thirst},
         SpawnFauna,
     },
-    landscape::{world_to_pos, TileSettings},
+    map::{world_to_pos, TileSettings},
     resource::{FoodSource, WaterSource},
 };
 

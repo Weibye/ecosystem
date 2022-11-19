@@ -66,7 +66,7 @@ fn create_tiles(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut rng: ResMut<GlobalRng>,
 ) {
-    let mut logical_tiles: Vec<TileData> = Vec::new();
+    // let mut logical_tiles: Vec<TileData> = Vec::new();
 
     for x in 0..settings.map_size.0 {
         for y in 0..settings.map_size.1 {
@@ -78,32 +78,45 @@ fn create_tiles(
                 _ => panic!("Out of range"),
             };
 
-            logical_tiles.push(TileData {
-                position: TilePosition { x, y, height: 0 },
-                ground_type,
-            });
+            let tile_pos = TilePosition { x, y, height: 0 };
+
+            cmd.spawn((
+                TileData {
+                    position: tile_pos,
+                    ground_type,
+                },
+                PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Plane {
+                        size: settings.tile_size,
+                    })),
+                    material: materials.add(get_color(ground_type).into()),
+                    transform: Transform::from_translation(pos_to_world(&tile_pos, &settings)),
+                    ..default()
+                },
+                PickableBundle::default(),
+            ));
         }
     }
 
-    // Spawn tile data
-    for e in &logical_tiles {
-        cmd.spawn(*e);
-    }
+    // // Spawn tile data
+    // for e in &logical_tiles {
+    //     cmd.spawn(*e);
+    // }
 
-    // Spawn visual tiles
-    for e in &logical_tiles {
-        cmd.spawn((
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Plane {
-                    size: settings.tile_size,
-                })),
-                material: materials.add(get_color(e.ground_type).into()),
-                transform: Transform::from_translation(pos_to_world(&e.position, &settings)),
-                ..default()
-            },
-            PickableBundle::default(),
-        ));
-    }
+    // // Spawn visual tiles
+    // for e in &logical_tiles {
+    //     cmd.spawn((
+    //         PbrBundle {
+    //             mesh: meshes.add(Mesh::from(shape::Plane {
+    //                 size: settings.tile_size,
+    //             })),
+    //             material: materials.add(get_color(e.ground_type).into()),
+    //             transform: Transform::from_translation(pos_to_world(&e.position, &settings)),
+    //             ..default()
+    //         },
+    //         PickableBundle::default(),
+    //     ));
+    // }
 }
 
 pub(crate) fn get_rand_pos(rng: &mut Rng, settings: &TileSettings) -> TilePosition {

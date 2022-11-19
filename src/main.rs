@@ -2,14 +2,14 @@ use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
-use landscape::{get_rand_pos, LandscapePlugin, TileSettings};
+use map::{get_rand_pos, LandscapePlugin, TileSettings};
 use player::PlayerPlugin;
 use resource::ResourcePlugin;
 
 mod agent;
 mod fauna;
 mod flora;
-mod landscape;
+mod map;
 mod player;
 mod resource;
 mod utils;

@@ -18,7 +18,7 @@ use crate::{
         scorers::{Hungry, ReproductionScore, Thirsty},
         AgentPlugin,
     },
-    landscape::{get_rand_pos, pos_to_world, TilePosition, TileSettings},
+    map::{get_rand_pos, pos_to_world, TilePosition, TileSettings},
     utils::lerp_range,
 };
 
