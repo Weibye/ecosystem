@@ -26,3 +26,8 @@ pub(crate) fn lerp(value: f32, min: f32, max: f32) -> f32 {
 pub(crate) fn lerp_range(value: f32, range: Range<f32>) -> f32 {
     lerp(value, range.start, range.end)
 }
+
+/// Project a vector onto to a plane with the given normal.
+pub(crate) fn project_to_plane(vector: Vec3, normal: Vec3) -> Vec3 {
+    vector - vector.project_onto(normal)
+}

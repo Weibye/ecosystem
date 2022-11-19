@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{info, warn, Changed, Component, Entity, EventWriter, Query, Res},
+    prelude::{warn, Changed, Component, Entity, EventWriter, Query, Res},
     time::Time,
 };
 
@@ -79,7 +79,6 @@ pub(crate) fn health_update(mut q: Query<(&mut Health, &Hunger, &Thirst)>) {
         if health.value >= 100.0 {
             health.value = 100.0
         }
-        info!("Health: {:?}", health.value);
     }
 }
 

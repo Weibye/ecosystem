@@ -1,10 +1,17 @@
 use bevy::prelude::{
-    default, Camera3dBundle, Commands, Component, KeyCode, Plugin, Query, Transform, Vec3, With,
+    default, info, Camera3dBundle, Commands, Component, KeyCode, Plugin, Query, Transform, Vec3,
+    With,
 };
-use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle};
+use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
     prelude::{ActionState, InputManagerPlugin, InputMap, VirtualDPad},
     Actionlike, InputManagerBundle,
+};
+
+use crate::{
+    fauna::needs::{Health, Hunger, Reproduction, Thirst},
+    resource::{FoodSource, WaterSource},
+    utils::project_to_plane,
 };
 
 pub(crate) struct PlayerPlugin;
@@ -16,7 +23,9 @@ impl Plugin for PlayerPlugin {
             // We need to provide it with an enum which stores the possible actions a player could take
             .add_plugin(InputManagerPlugin::<Action>::default())
             .add_startup_system(spawn_player)
-            .add_system(move_player);
+            .add_system(move_player)
+            .add_system(output_fauna_data)
+            .add_system(output_flora_data);
     }
 }
 
@@ -68,7 +77,34 @@ fn move_player(mut q: Query<(&ActionState<Action>, &mut Transform), With<Player>
     }
 }
 
-/// Project a vector onto to a place with the given normal.
-fn project_to_plane(vector: Vec3, normal: Vec3) -> Vec3 {
-    vector - vector.project_onto(normal)
+fn output_fauna_data(q: Query<(&Selection, &Hunger, &Thirst, &Reproduction, &Health)>) {
+    for (selection, hunger, thirst, reproduction, health) in &q {
+        if !selection.selected() {
+            continue;
+        }
+
+        info!(
+            "\nHunger: {:?}\nThirst: {:?}\nReproduction: {:?}\nHealth: {:?}",
+            hunger.value, thirst.value, reproduction.value, health.value
+        );
+    }
+}
+
+fn output_flora_data(q: Query<(&Selection, Option<&FoodSource>, Option<&WaterSource>)>) {
+    for (selection, food_source, water_source) in &q {
+        if !selection.selected() {
+            continue;
+        }
+        if food_source.is_none() && water_source.is_none() {
+            continue;
+        }
+
+        if let Some(food) = food_source {
+            info!("Food: {:?}", food.content);
+        }
+
+        if let Some(water) = water_source {
+            info!("Water: {:?}", water.content);
+        }
+    }
 }
