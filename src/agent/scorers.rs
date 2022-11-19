@@ -21,7 +21,6 @@ pub(crate) fn hungry_scorer(
     for (Actor(actor), mut score) in &mut scorers {
         if let Ok(hunger) = q.get(*actor) {
             score.set(hunger.value / 100.0);
-            // info!("Hunger: {:?}", hunger.value);
         }
     }
 }
@@ -33,7 +32,6 @@ pub(crate) fn thirsty_scorer(
     for (Actor(actor), mut score) in &mut scorers {
         if let Ok(thirst) = q.get(*actor) {
             score.set(thirst.value / 100.0);
-            // info!("Thirst: {:?}", thirst.value);
         }
     }
 }
@@ -49,7 +47,6 @@ pub(crate) fn reproduction_scorer(
             } else {
                 0.0
             });
-            // info!("Reproduction: {:?}", reproduction.value);
         }
     }
 }

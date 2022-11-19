@@ -1,15 +1,14 @@
 use bevy::prelude::{
-    default, info, Camera3dBundle, Commands, Component, CoreStage, EventReader, KeyCode, Or,
-    Plugin, Query, Transform, Vec3, With,
+    default, info, Camera3dBundle, Commands, Component, KeyCode, Plugin, Query, Transform, Vec3,
+    With,
 };
-use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, PickingEvent, Selection};
+use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
     prelude::{ActionState, InputManagerPlugin, InputMap, VirtualDPad},
     Actionlike, InputManagerBundle,
 };
 
 use crate::{
-    agent::actions::ReproduceAction,
     fauna::needs::{Health, Hunger, Reproduction, Thirst},
     resource::{FoodSource, WaterSource},
     utils::project_to_plane,
@@ -23,7 +22,6 @@ impl Plugin for PlayerPlugin {
             // This plugin maps inputs to an input-type agnostic action-state
             // We need to provide it with an enum which stores the possible actions a player could take
             .add_plugin(InputManagerPlugin::<Action>::default())
-            // .add_system_to_stage(CoreStage::PostUpdate, print_events)
             .add_startup_system(spawn_player)
             .add_system(move_player)
             .add_system(output_fauna_data)
@@ -78,16 +76,6 @@ fn move_player(mut q: Query<(&ActionState<Action>, &mut Transform), With<Player>
         }
     }
 }
-
-// fn print_events(mut events: EventReader<PickingEvent>) {
-//     for event in events.iter() {
-//         match event {
-//             PickingEvent::Selection(e) => info!("A selection event happened: {:?}", e),
-//             PickingEvent::Hover(e) => info!("Egads! A hover event!? {:?}", e),
-//             PickingEvent::Clicked(e) => info!("Gee Willikers, it's a click! {:?}", e),
-//         }
-//     }
-// }
 
 fn output_fauna_data(q: Query<(&Selection, &Hunger, &Thirst, &Reproduction, &Health)>) {
     for (selection, hunger, thirst, reproduction, health) in &q {
