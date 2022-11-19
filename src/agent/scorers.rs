@@ -1,6 +1,6 @@
 // SCORES
 
-use bevy::prelude::{info, Changed, Component, Query, With};
+use bevy::prelude::{Changed, Component, Query, With};
 use big_brain::{scorers::Score, thinker::Actor};
 
 use crate::fauna::needs::{Hunger, Reproduction, Thirst};
