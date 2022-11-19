@@ -6,7 +6,7 @@ use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
 
 use crate::{
-    map::{pos_to_world, GroundType, TileData, TileSettings},
+    map::{pos_to_world, TileType, TileData, TileSettings},
     resource::{FoodSource, WaterSource},
     utils::lerp_range,
     AppStage,
@@ -35,7 +35,7 @@ fn spawn_food(
     mut rng: ResMut<GlobalRng>,
 ) {
     for tile in &tiles {
-        if tile.ground_type == GroundType::Grass {
+        if tile.tile_type == TileType::Grass {
             let rand = lerp_range(rng.get_mut().f32(), 0.0..100.0);
             if rand <= 50.0 {
                 continue;
@@ -64,7 +64,7 @@ fn spawn_water(
     // mut rng: ResMut<GlobalRng>,
 ) {
     for tile in &tiles {
-        if tile.ground_type == GroundType::Water {
+        if tile.tile_type == TileType::Water {
             cmd.spawn((
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),

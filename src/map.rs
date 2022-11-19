@@ -1,6 +1,6 @@
 use bevy::prelude::{
     default, shape, Assets, Color, Commands, Component, Mesh, PbrBundle, Plugin, Res, ResMut,
-    Resource, StandardMaterial, Transform, Vec3,
+    Resource, StandardMaterial, Transform, Vec3, App,
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{rng::Rng, DelegatedRng, GlobalRng, TurboRand};
@@ -10,7 +10,7 @@ use crate::AppStage;
 #[derive(Component, Copy, Clone, Debug)]
 pub(crate) struct TileData {
     pub(crate) position: TilePosition,
-    pub(crate) ground_type: GroundType,
+    pub(crate) tile_type: TileType,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -21,18 +21,18 @@ pub(crate) struct TilePosition {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub(crate) enum GroundType {
+pub(crate) enum TileType {
     Grass,
     Rock,
     Water,
 }
 
-pub(crate) struct LandscapePlugin {
+pub(crate) struct MapPlugin {
     pub(crate) tile_size: f32,
     pub(crate) map_size: (i8, i8),
 }
 
-impl Default for LandscapePlugin {
+impl Default for MapPlugin {
     fn default() -> Self {
         Self {
             tile_size: 1.0,
@@ -48,8 +48,8 @@ pub(crate) struct TileSettings {
     pub(crate) map_size: (i8, i8),
 }
 
-impl Plugin for LandscapePlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
+impl Plugin for MapPlugin {
+    fn build(&self, app: &mut App) {
         app.insert_resource(TileSettings {
             tile_size: self.tile_size,
             map_size: self.map_size,
@@ -72,9 +72,9 @@ fn create_tiles(
         for y in 0..settings.map_size.1 {
             let index = rng.get_mut().i32(0..=4);
             let ground_type = match index {
-                0..=2 => GroundType::Grass,
-                3 => GroundType::Rock,
-                4 => GroundType::Water,
+                0..=2 => TileType::Grass,
+                3 => TileType::Rock,
+                4 => TileType::Water,
                 _ => panic!("Out of range"),
             };
 
@@ -83,7 +83,7 @@ fn create_tiles(
             cmd.spawn((
                 TileData {
                     position: tile_pos,
-                    ground_type,
+                    tile_type: ground_type,
                 },
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Plane {
@@ -97,26 +97,6 @@ fn create_tiles(
             ));
         }
     }
-
-    // // Spawn tile data
-    // for e in &logical_tiles {
-    //     cmd.spawn(*e);
-    // }
-
-    // // Spawn visual tiles
-    // for e in &logical_tiles {
-    //     cmd.spawn((
-    //         PbrBundle {
-    //             mesh: meshes.add(Mesh::from(shape::Plane {
-    //                 size: settings.tile_size,
-    //             })),
-    //             material: materials.add(get_color(e.ground_type).into()),
-    //             transform: Transform::from_translation(pos_to_world(&e.position, &settings)),
-    //             ..default()
-    //         },
-    //         PickableBundle::default(),
-    //     ));
-    // }
 }
 
 pub(crate) fn get_rand_pos(rng: &mut Rng, settings: &TileSettings) -> TilePosition {
@@ -147,11 +127,11 @@ pub(crate) fn world_to_pos(pos: &Vec3, settings: &TileSettings) -> TilePosition 
 
 /// Gets the corresponding material color for a `GroundType`.
 /// TODO: Replace with actual textures and assets.
-fn get_color(ground_type: GroundType) -> Color {
-    match ground_type {
-        GroundType::Grass => Color::rgb(0.1, 0.7, 0.25),
-        GroundType::Rock => Color::rgb(0.4, 0.45, 0.4),
-        GroundType::Water => Color::rgb(0.0, 0.4, 0.6),
+fn get_color(tile_type: TileType) -> Color {
+    match tile_type {
+        TileType::Grass => Color::rgb(0.1, 0.7, 0.25),
+        TileType::Rock => Color::rgb(0.4, 0.45, 0.4),
+        TileType::Water => Color::rgb(0.0, 0.4, 0.6),
     }
 }
 

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
-use map::{get_rand_pos, LandscapePlugin, TileSettings};
+use map::{get_rand_pos, MapPlugin, TileSettings};
 use player::PlayerPlugin;
 use resource::ResourcePlugin;
 
@@ -36,7 +36,7 @@ fn main() {
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(RngPlugin::default())
-        .add_plugin(LandscapePlugin::default())
+        .add_plugin(MapPlugin::default())
         .add_plugin(FaunaPlugin)
         .add_plugin(FloraPlugin)
         .add_plugin(ResourcePlugin)
