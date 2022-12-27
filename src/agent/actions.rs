@@ -213,7 +213,7 @@ pub(crate) fn move_to_target(
                 if let Ok((mut transform, pos, mut path, ability)) = agents.get_mut(*actor) {
                     let mut available_movement = time.delta_seconds() * ability.speed;
 
-                    while available_movement > 0.0 || path.path.len() > 0 {
+                    while available_movement > 0.0 && path.path.len() > 0 {
                         let delta = map.index_to_world(path.path[0]) - transform.translation;
 
                         if delta.length() > available_movement {
@@ -225,43 +225,10 @@ pub(crate) fn move_to_target(
                             path.path.remove(0);
                         }
                     }
-
                     if path.path.len() <= 0 {
                         info!("We arrive at the end of the path!");
                         *state = ActionState::Success;
                     }
-
-                    // 1. Check if we are about to finish a waypoint
-
-                    // let waypoint_translation = map.index_to_world(path.path[0]);
-                    // let agent_translation = transform.translation;
-
-                    // let waypoint_delta = waypoint_translation - agent_translation;
-                    // if waypoint_delta.length() > available_movement {
-                    //     // We will not yet reach our destination, so take a step in the right direction
-                    //     transform.translation += waypoint_delta.normalize() * available_movement;
-                    // } else {
-                    //     // We might move past our waypoint in a single step.
-                    //     if path.path.len()
-                    // }
-
-                    // if map.index_to_world(path.path[0]) == pos.pos {
-                    //     warn!("We are currently on the location");
-                    //     path.path.remove(0);
-                    // }
-
-                    // move according to ability, towards that next tile
-                    // if reached the next tile, pop from the path, then repeat
-
-                    // let delta = path.path - transform.translation;
-                    // let distance = delta.length();
-
-                    // if distance <= INTERACTION_DISTANCE {
-                    //     *state = ActionState::Success;
-                    // } else {
-                    //     let movement = delta.normalize() * step_size.min(distance);
-                    //     transform.translation += movement;
-                    // }
                 } else {
                     info!("No entities exist to perform this action");
                     *state = ActionState::Cancelled;
