@@ -8,12 +8,6 @@ use crate::utils::Vec2;
 
 use super::plugin::MapSettings;
 
-#[derive(Component, Copy, Clone, Debug)]
-pub(crate) struct TileData {
-    pub(crate) position: TilePos,
-    pub(crate) tile_type: TileType,
-}
-
 /// Marks where on the map an entitiy is located.
 #[derive(Copy, Clone, Debug, PartialEq, Component)]
 pub(crate) struct TilePos {
@@ -79,27 +73,3 @@ pub(crate) fn get_color(tile_type: TileType) -> Color {
         TileType::Lava => Color::rgb(1.0, 0.4, 0.0),
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use crate::{map::plugin::MapSettings, utils::Vec2};
-
-//     use super::{pos_to_world, world_to_pos, TilePos};
-
-//     /// We should should be able to convert from tile-space to
-//     /// world-spaceand back again and still have the same output.
-//     #[test]
-//     fn pos_test() {
-//         let settings = MapSettings {
-//             height: 1,
-//             width: 1,
-//             max_layers: 1,
-//             tile_size: 1.0,
-//         };
-//         let pos = TilePos {
-//             pos: Vec2::new(0, 0),
-//         };
-//         let translation = pos_to_world(&pos, &settings);
-//         assert_eq!(world_to_pos(&translation, &settings), pos);
-//     }
-// }

@@ -5,11 +5,11 @@ use bevy::prelude::{
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
 
-use crate::{utils::Vec2, AppStage};
+use crate::AppStage;
 
 use super::{
-    map::Map,
-    tiles::{get_color, TileData, TilePos, TileType},
+    tiles::{get_color, TileType},
+    Map,
 };
 
 #[derive(Resource, Clone)]
@@ -17,7 +17,6 @@ pub(crate) struct MapSettings {
     pub(crate) width: i32,
     pub(crate) height: i32,
     pub(crate) tile_size: f32,
-    pub(crate) max_layers: i32,
 }
 
 pub(crate) struct MapPlugin {
@@ -40,7 +39,6 @@ impl Plugin for MapPlugin {
             tile_size: self.tile_size,
             width: self.map_size.0,
             height: self.map_size.1,
-            max_layers: 1,
         })
         .add_startup_system_to_stage(AppStage::SeedMap, seed_map)
         .add_startup_system_to_stage(AppStage::SpawnMap, spawn_map);
@@ -52,11 +50,11 @@ fn seed_map(mut cmd: Commands, settings: Res<MapSettings>, mut rng: ResMut<Globa
     cmd.insert_resource(generate_map(&settings, &mut rng));
 }
 
-fn generate_map(settings: &MapSettings, mut rng: &mut GlobalRng) -> Map {
+fn generate_map(settings: &MapSettings, rng: &mut GlobalRng) -> Map {
     let mut tiles: Vec<TileType> = vec![];
 
-    for x in 0..settings.width {
-        for y in 0..settings.height {
+    for _ in 0..settings.width {
+        for _ in 0..settings.height {
             let index = rng.get_mut().i32(0..=5);
             tiles.push(match index {
                 0..=2 => TileType::Grass,
@@ -80,30 +78,17 @@ fn spawn_map(
     mut materials: ResMut<Assets<StandardMaterial>>,
     map: Res<Map>,
 ) {
-    let mut index = 0;
-    for x in 0..map.settings.width {
-        for y in 0..map.settings.height {
-            let tile_pos = TilePos {
-                pos: Vec2::new(x, y),
-            };
-
-            cmd.spawn((
-                TileData {
-                    position: tile_pos,
-                    tile_type: map.tiles[index],
-                },
-                PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Plane {
-                        size: map.settings.tile_size,
-                    })),
-                    material: materials.add(get_color(map.tiles[index]).into()),
-                    transform: Transform::from_translation(tile_pos.to_world(&map.settings)),
-                    ..default()
-                },
-                PickableBundle::default(),
-            ));
-
-            index += 1;
-        }
+    for index in 0..map.tiles.len() {
+        cmd.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Plane {
+                    size: map.settings.tile_size,
+                })),
+                material: materials.add(get_color(map.tiles[index]).into()),
+                transform: Transform::from_translation(map.index_to_world(index)),
+                ..default()
+            },
+            PickableBundle::default(),
+        ));
     }
 }

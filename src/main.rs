@@ -2,13 +2,12 @@ use agent::actions::{MoveAbility, MovementPath};
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
-use bracket_pathfinding::prelude::Algorithm2D;
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
 use map::{
-    map::Map,
     plugin::MapPlugin,
-    tiles::{create_rand_pos, pos_to_world, world_to_pos, TilePos},
+    tiles::{create_rand_pos, world_to_pos, TilePos},
+    Map,
 };
 use player::PlayerPlugin;
 use resource::ResourcePlugin;
@@ -17,7 +16,6 @@ mod agent;
 mod fauna;
 mod flora;
 mod map;
-mod movement;
 mod player;
 mod resource;
 mod utils;

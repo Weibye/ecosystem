@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    default, info, shape, App, Assets, Color, Commands, Mesh, PbrBundle, Plugin, Query, Res,
-    ResMut, StandardMaterial, Transform,
+    default, info, shape, App, Assets, Color, Commands, Mesh, PbrBundle, Plugin, Res, ResMut,
+    StandardMaterial, Transform,
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
@@ -8,8 +8,8 @@ use bracket_pathfinding::prelude::Algorithm2D;
 
 use crate::{
     map::{
-        map::Map,
-        tiles::{TileData, TilePos, TileType},
+        tiles::{TilePos, TileType},
+        Map,
     },
     resource::{FoodSource, WaterSource},
     utils::lerp_range,

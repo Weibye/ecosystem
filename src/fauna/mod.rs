@@ -19,8 +19,8 @@ use crate::{
         AgentPlugin,
     },
     map::{
-        map::Map,
         tiles::{create_rand_pos, pos_to_world, TilePos},
+        Map,
     },
     utils::lerp_range,
 };
@@ -142,7 +142,7 @@ fn spawn_agent(
                 speed: lerp_range(rng.f32(), 1.5..10.0),
             },
             thinker,
-            spawn_pos.clone(),
+            spawn_pos,
             PickableBundle::default(),
         ));
     }

@@ -1,19 +1,8 @@
-use bevy::prelude::{Resource, Vec3};
-
 use bracket_pathfinding::prelude::{
     Algorithm2D, BaseMap, DistanceAlg::Pythagoras, Point, SmallVec,
 };
 
-use super::{
-    plugin::MapSettings,
-    tiles::{pos_to_world, TileType},
-};
-
-#[derive(Resource)]
-pub(crate) struct Map {
-    pub(crate) tiles: Vec<TileType>,
-    pub(crate) settings: MapSettings,
-}
+use super::{tiles::TileType, Map};
 
 impl Map {
     fn valid_exit(&self, location: Point, delta: Point) -> Option<usize> {
@@ -24,10 +13,6 @@ impl Map {
         } else {
             None
         }
-    }
-
-    pub(crate) fn index_to_world(&self, index: usize) -> Vec3 {
-        pos_to_world(self.index_to_point2d(index).into(), &self.settings)
     }
 }
 

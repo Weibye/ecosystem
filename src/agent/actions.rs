@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        info, warn, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res,
-        Transform, Vec3, With,
+        info, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, Transform,
+        With,
     },
     time::Time,
 };
@@ -9,7 +9,7 @@ use big_brain::{
     prelude::ActionState,
     thinker::{ActionSpan, Actor},
 };
-use bracket_pathfinding::prelude::{a_star_search, Algorithm2D, Point};
+use bracket_pathfinding::prelude::{a_star_search, Algorithm2D};
 
 use crate::{
     fauna::{
@@ -17,13 +17,11 @@ use crate::{
         SpawnFauna,
     },
     map::{
-        map::Map,
         tiles::{world_to_pos, TilePos},
+        Map,
     },
     resource::{FoodSource, WaterSource},
 };
-
-const INTERACTION_DISTANCE: f32 = 0.1;
 
 // ACTIONS
 
@@ -210,7 +208,7 @@ pub(crate) fn move_to_target(
             ActionState::Cancelled => *state = ActionState::Failure,
             ActionState::Executing => {
                 info!("Moving to target");
-                if let Ok((mut transform, pos, mut path, ability)) = agents.get_mut(*actor) {
+                if let Ok((mut transform, _, mut path, ability)) = agents.get_mut(*actor) {
                     let mut available_movement = time.delta_seconds() * ability.speed;
 
                     while available_movement > 0.0 && path.path.len() > 0 {
@@ -225,7 +223,7 @@ pub(crate) fn move_to_target(
                             path.path.remove(0);
                         }
                     }
-                    if path.path.len() <= 0 {
+                    if path.path.len() == 0 {
                         info!("We arrive at the end of the path!");
                         *state = ActionState::Success;
                     }
@@ -259,7 +257,7 @@ pub(crate) fn find_food(
                 info!("Looking for food");
                 if let Ok((agent_transform, agent_pos)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
-                    if let Some((source_entity, source_transform, source_pos)) =
+                    if let Some((source_entity, _, source_pos)) =
                         food_sources.iter().min_by(|(_, ta, _), (_, tb, _)| {
                             let a_distance =
                                 (ta.translation() - agent_transform.translation()).length_squared();
@@ -327,7 +325,7 @@ pub(crate) fn find_drink(
                 info!("Looking for water");
                 if let Ok((agent_transform, agent_pos)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
-                    if let Some((source_entity, source_transform, source_pos)) =
+                    if let Some((source_entity, _, source_pos)) =
                         water_sources.iter().min_by(|(_, ta, _), (_, tb, _)| {
                             let a_distance =
                                 (ta.translation() - agent_transform.translation()).length_squared();
