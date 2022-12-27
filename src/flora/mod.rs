@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    default, shape, App, Assets, Color, Commands, Mesh, PbrBundle, Plugin, Query, Res, ResMut,
-    StandardMaterial, Transform, info,
+    default, info, shape, App, Assets, Color, Commands, Mesh, PbrBundle, Plugin, Query, Res,
+    ResMut, StandardMaterial, Transform,
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
