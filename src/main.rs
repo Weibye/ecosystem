@@ -1,8 +1,15 @@
+use agent::actions::{MoveAbility, MovementPath};
 use bevy::prelude::*;
+use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
+use bracket_pathfinding::prelude::Algorithm2D;
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
-use map::{get_rand_pos, MapPlugin, TileSettings};
+use map::{
+    map::Map,
+    plugin::MapPlugin,
+    tiles::{create_rand_pos, pos_to_world, world_to_pos, TilePos},
+};
 use player::PlayerPlugin;
 use resource::ResourcePlugin;
 
@@ -10,22 +17,29 @@ mod agent;
 mod fauna;
 mod flora;
 mod map;
+mod movement;
 mod player;
 mod resource;
 mod utils;
 
 #[derive(StageLabel)]
 enum AppStage {
-    SeedBoard,
+    SeedMap,
+    SpawnMap,
     SpawnFlora,
     SpawnFauna,
 }
 
 fn main() {
     App::new()
-        .add_startup_stage(AppStage::SeedBoard, SystemStage::parallel())
+        .add_startup_stage(AppStage::SeedMap, SystemStage::parallel())
         .add_startup_stage_after(
-            AppStage::SeedBoard,
+            AppStage::SeedMap,
+            AppStage::SpawnMap,
+            SystemStage::parallel(),
+        )
+        .add_startup_stage_after(
+            AppStage::SeedMap,
             AppStage::SpawnFlora,
             SystemStage::parallel(),
         )
@@ -36,12 +50,18 @@ fn main() {
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(RngPlugin::default())
-        .add_plugin(MapPlugin::default())
+        .add_plugin(DebugLinesPlugin::default())
+        .add_plugin(MapPlugin {
+            tile_size: 1.0,
+            map_size: (16, 16),
+        })
         .add_plugin(FaunaPlugin)
         .add_plugin(FloraPlugin)
         .add_plugin(ResourcePlugin)
         .add_plugin(PlayerPlugin)
-        .add_startup_system(setup)
+        .add_startup_system_to_stage(AppStage::SpawnMap, setup)
+        .add_system(draw_paths)
+        .add_system(update_tile_pos)
         .run();
 }
 
@@ -49,7 +69,7 @@ fn setup(
     mut cmd: Commands,
     mut rng: ResMut<GlobalRng>,
     mut writer: EventWriter<SpawnFauna>,
-    settings: Res<TileSettings>,
+    map: Res<Map>,
 ) {
     // ambient light
     cmd.insert_resource(AmbientLight {
@@ -69,6 +89,30 @@ fn setup(
     });
 
     writer.send(SpawnFauna {
-        position: Some(get_rand_pos(rng.get_mut(), &settings)),
+        position: Some(create_rand_pos(rng.get_mut(), &map.settings)),
     });
+}
+
+fn draw_paths(q: Query<&MovementPath>, mut lines: ResMut<DebugLines>, map: Res<Map>) {
+    for path in &q {
+        for n in 0..path.path.len() {
+            if n == 0 {
+                continue;
+            }
+            lines.line(
+                map.index_to_world(path.path[n - 1]),
+                map.index_to_world(path.path[n]),
+                0.0,
+            );
+        }
+    }
+}
+
+fn update_tile_pos(
+    mut q: Query<(&mut TilePos, &GlobalTransform), (With<MoveAbility>, Changed<GlobalTransform>)>,
+    map: Res<Map>,
+) {
+    for (mut tile_pos, transform) in &mut q {
+        tile_pos.pos = world_to_pos(&transform.translation(), &map.settings);
+    }
 }

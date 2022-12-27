@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        info, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, Transform,
-        Vec3, With,
+        info, warn, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res,
+        Transform, Vec3, With,
     },
     time::Time,
 };
@@ -9,13 +9,17 @@ use big_brain::{
     prelude::ActionState,
     thinker::{ActionSpan, Actor},
 };
+use bracket_pathfinding::prelude::{a_star_search, Algorithm2D, Point};
 
 use crate::{
     fauna::{
         needs::{Hunger, Reproduction, Thirst},
         SpawnFauna,
     },
-    map::{world_to_pos, TileSettings},
+    map::{
+        map::Map,
+        tiles::{world_to_pos, TilePos},
+    },
     resource::{FoodSource, WaterSource},
 };
 
@@ -63,10 +67,10 @@ pub(crate) struct DrinkTarget {
     pub target: Entity,
 }
 
-/// Component that contians the data of where to move to.
+/// Component that contians the path to follow.
 #[derive(Component, Debug)]
-pub(crate) struct MovementTarget {
-    target: Vec3,
+pub(crate) struct MovementPath {
+    pub(crate) path: Vec<usize>,
 }
 
 // Action abilities
@@ -192,11 +196,13 @@ pub(crate) fn drink_action(
 }
 
 /// Defines how an aget should move to a supplied target.
+// TODO: Move through waypoints
 pub(crate) fn move_to_target(
     mut cmd: Commands,
     time: Res<Time>,
-    mut q: Query<(&mut Transform, &MovementTarget, &MoveAbility)>,
+    mut agents: Query<(&mut Transform, &TilePos, &mut MovementPath, &MoveAbility)>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<MoveAction>>,
+    map: Res<Map>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
@@ -204,17 +210,58 @@ pub(crate) fn move_to_target(
             ActionState::Cancelled => *state = ActionState::Failure,
             ActionState::Executing => {
                 info!("Moving to target");
-                if let Ok((mut transform, target, ability)) = q.get_mut(*actor) {
-                    let delta = target.target - transform.translation;
-                    let distance = delta.length();
+                if let Ok((mut transform, pos, mut path, ability)) = agents.get_mut(*actor) {
+                    let mut available_movement = time.delta_seconds() * ability.speed;
 
-                    if distance <= INTERACTION_DISTANCE {
-                        *state = ActionState::Success;
-                    } else {
-                        let step_size = time.delta_seconds() * ability.speed;
-                        let movement = delta.normalize() * step_size.min(distance);
-                        transform.translation += movement;
+                    while available_movement > 0.0 || path.path.len() > 0 {
+                        let delta = map.index_to_world(path.path[0]) - transform.translation;
+
+                        if delta.length() > available_movement {
+                            transform.translation += delta.normalize() * available_movement;
+                            available_movement = 0.0;
+                        } else {
+                            transform.translation += delta;
+                            available_movement -= delta.length();
+                            path.path.remove(0);
+                        }
                     }
+
+                    if path.path.len() <= 0 {
+                        info!("We arrive at the end of the path!");
+                        *state = ActionState::Success;
+                    }
+
+                    // 1. Check if we are about to finish a waypoint
+
+                    // let waypoint_translation = map.index_to_world(path.path[0]);
+                    // let agent_translation = transform.translation;
+
+                    // let waypoint_delta = waypoint_translation - agent_translation;
+                    // if waypoint_delta.length() > available_movement {
+                    //     // We will not yet reach our destination, so take a step in the right direction
+                    //     transform.translation += waypoint_delta.normalize() * available_movement;
+                    // } else {
+                    //     // We might move past our waypoint in a single step.
+                    //     if path.path.len()
+                    // }
+
+                    // if map.index_to_world(path.path[0]) == pos.pos {
+                    //     warn!("We are currently on the location");
+                    //     path.path.remove(0);
+                    // }
+
+                    // move according to ability, towards that next tile
+                    // if reached the next tile, pop from the path, then repeat
+
+                    // let delta = path.path - transform.translation;
+                    // let distance = delta.length();
+
+                    // if distance <= INTERACTION_DISTANCE {
+                    //     *state = ActionState::Success;
+                    // } else {
+                    //     let movement = delta.normalize() * step_size.min(distance);
+                    //     transform.translation += movement;
+                    // }
                 } else {
                     info!("No entities exist to perform this action");
                     *state = ActionState::Cancelled;
@@ -222,7 +269,7 @@ pub(crate) fn move_to_target(
             }
             ActionState::Success => {
                 info!("Target reached");
-                cmd.entity(*actor).remove::<MovementTarget>();
+                cmd.entity(*actor).remove::<MovementPath>();
             }
             _ => {}
         }
@@ -230,39 +277,52 @@ pub(crate) fn move_to_target(
 }
 
 /// Defines how an agent should look for a food source.
+// TODO: Make this generic
 pub(crate) fn find_food(
     mut cmd: Commands,
-    q: Query<&GlobalTransform, With<EatAbility>>,
-    food_sources: Query<(Entity, &GlobalTransform), With<FoodSource>>,
+    agents: Query<(&GlobalTransform, &TilePos), With<EatAbility>>,
+    food_sources: Query<(Entity, &GlobalTransform, &TilePos), With<FoodSource>>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<FindFoodAction>>,
+    map: Res<Map>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
                 info!("Looking for food");
-                if let Ok(transform) = q.get(*actor) {
+                if let Ok((agent_transform, agent_pos)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
-                    if let Some((food_source, food_source_pos)) =
-                        food_sources.iter().min_by(|(_, ta), (_, tb)| {
+                    if let Some((source_entity, source_transform, source_pos)) =
+                        food_sources.iter().min_by(|(_, ta, _), (_, tb, _)| {
                             let a_distance =
-                                (ta.translation() - transform.translation()).length_squared();
+                                (ta.translation() - agent_transform.translation()).length_squared();
                             let b_distance =
-                                (tb.translation() - transform.translation()).length_squared();
+                                (tb.translation() - agent_transform.translation()).length_squared();
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
-                        let pos = food_source_pos.translation();
-                        cmd.entity(*actor)
-                            .insert(MovementTarget {
-                                // Project this to zero for now.
-                                target: Vec3::new(pos.x, 0.4, pos.z),
-                            })
-                            .insert(EatTarget {
-                                target: food_source,
-                            });
+                        // Find the path
+                        let path = a_star_search(
+                            map.point2d_to_index(agent_pos.pos.into()),
+                            map.point2d_to_index(source_pos.pos.into()),
+                            &*map,
+                        );
 
-                        *state = ActionState::Success;
+                        if path.success {
+                            cmd.entity(*actor)
+                                .insert(MovementPath {
+                                    // Project this to zero for now.
+                                    path: path.steps,
+                                })
+                                .insert(EatTarget {
+                                    target: source_entity,
+                                });
+
+                            *state = ActionState::Success;
+                        } else {
+                            info!("Unable to find a valid path to the food-source");
+                            *state = ActionState::Cancelled;
+                        }
                     } else {
                         info!("No food sources are closest");
                         *state = ActionState::Cancelled;
@@ -282,37 +342,55 @@ pub(crate) fn find_food(
 }
 
 /// Defines how an agent should look for a water-source.
+///
+/// TODO: This should be defined based on observing ability and discovered knowledge.
+/// If the entity remembers a water source in a good location and not have to explore for a new one,
+/// that should be used instead.
 pub(crate) fn find_drink(
     mut cmd: Commands,
-    q: Query<&GlobalTransform, With<DrinkAbility>>,
-    water_sources: Query<(Entity, &GlobalTransform), With<WaterSource>>,
+    agents: Query<(&GlobalTransform, &TilePos), With<DrinkAbility>>,
+    water_sources: Query<(Entity, &GlobalTransform, &TilePos), With<WaterSource>>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<FindDrinkAction>>,
+    map: Res<Map>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
                 info!("Looking for water");
-                if let Ok(transform) = q.get(*actor) {
+                if let Ok((agent_transform, agent_pos)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
-                    if let Some((water_source, water_source_pos)) =
-                        water_sources.iter().min_by(|(_, ta), (_, tb)| {
+                    if let Some((source_entity, source_transform, source_pos)) =
+                        water_sources.iter().min_by(|(_, ta, _), (_, tb, _)| {
                             let a_distance =
-                                (ta.translation() - transform.translation()).length_squared();
+                                (ta.translation() - agent_transform.translation()).length_squared();
                             let b_distance =
-                                (tb.translation() - transform.translation()).length_squared();
+                                (tb.translation() - agent_transform.translation()).length_squared();
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
-                        cmd.entity(*actor)
-                            .insert(MovementTarget {
-                                target: water_source_pos.translation(),
-                            })
-                            .insert(DrinkTarget {
-                                target: water_source,
-                            });
+                        // Find the path
+                        let path = a_star_search(
+                            map.point2d_to_index(agent_pos.pos.into()),
+                            map.point2d_to_index(source_pos.pos.into()),
+                            &*map,
+                        );
 
-                        *state = ActionState::Success;
+                        if path.success {
+                            cmd.entity(*actor)
+                                .insert(MovementPath {
+                                    // Project this to zero for now.
+                                    path: path.steps,
+                                })
+                                .insert(DrinkTarget {
+                                    target: source_entity,
+                                });
+
+                            *state = ActionState::Success;
+                        } else {
+                            info!("Unable to find a valid path to the food-source");
+                            *state = ActionState::Cancelled;
+                        }
                     } else {
                         info!("No water sources are closest");
                         *state = ActionState::Cancelled;
@@ -336,7 +414,7 @@ pub(crate) fn reproduce_action(
     mut writer: EventWriter<SpawnFauna>,
     mut reproducers: Query<(&mut Reproduction, &GlobalTransform)>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<ReproduceAction>>,
-    settings: Res<TileSettings>,
+    map: Res<Map>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
@@ -348,9 +426,9 @@ pub(crate) fn reproduce_action(
                         info!("SUCESS!");
                         *state = ActionState::Success;
                         reproducer.value = 0.0;
-                        let spawn_pos = world_to_pos(&transform.translation(), &settings);
+                        let spawn_pos = world_to_pos(&transform.translation(), &map.settings);
                         writer.send(SpawnFauna {
-                            position: Some(spawn_pos),
+                            position: Some(TilePos::from_vec2(spawn_pos)),
                         })
                     } else {
                         *state = ActionState::Cancelled;
