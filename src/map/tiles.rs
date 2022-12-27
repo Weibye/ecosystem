@@ -15,11 +15,6 @@ pub(crate) struct TilePos {
 }
 
 impl TilePos {
-    /// Returns the world position equivalent of this tile position
-    pub fn to_world(self, settings: &MapSettings) -> Vec3 {
-        pos_to_world(self.pos, settings)
-    }
-
     pub fn from_point(point: Point) -> Self {
         TilePos {
             pos: Vec2::new(point.x, point.y),

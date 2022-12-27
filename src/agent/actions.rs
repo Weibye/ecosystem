@@ -211,7 +211,7 @@ pub(crate) fn move_to_target(
                 if let Ok((mut transform, _, mut path, ability)) = agents.get_mut(*actor) {
                     let mut available_movement = time.delta_seconds() * ability.speed;
 
-                    while available_movement > 0.0 && path.path.len() > 0 {
+                    while available_movement > 0.0 && !path.path.is_empty() {
                         let delta = map.index_to_world(path.path[0]) - transform.translation;
 
                         if delta.length() > available_movement {
@@ -223,7 +223,7 @@ pub(crate) fn move_to_target(
                             path.path.remove(0);
                         }
                     }
-                    if path.path.len() == 0 {
+                    if path.path.is_empty() {
                         info!("We arrive at the end of the path!");
                         *state = ActionState::Success;
                     }

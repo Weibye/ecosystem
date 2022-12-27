@@ -1,9 +1,8 @@
 //! Collection of various utility functions.
 
 use bevy::prelude::Vec3;
-use bevy_turborand::{rng::Rng, TurboRand};
 use bracket_pathfinding::prelude::Point;
-use std::ops::{Range, RangeBounds};
+use std::ops::Range;
 
 /// From a set of points, return whichever point is closest to the target.
 #[allow(dead_code)]
@@ -50,44 +49,17 @@ impl<T> Vec2<T> {
     }
 }
 
-// impl<i32> Vec2<i32> {
-//     pub fn random(rng: &mut Rng, x_bounds: Range<i32>, y_bounds: Range<i32>) -> Self {
-//         Vec2 { x: rng.i32(x_bounds), y: rng.i32(y_bounds) }
-//     }
-// }
-
-impl Into<Point> for Vec2<i32> {
-    fn into(self) -> Point {
+impl From<Vec2<i32>> for Point {
+    fn from(value: Vec2<i32>) -> Self {
         Point {
-            x: self.x,
-            y: self.y,
+            x: value.x,
+            y: value.y,
         }
     }
 }
 
-impl Into<Point> for Vec2<i16> {
-    fn into(self) -> Point {
-        Point {
-            x: self.x as i32,
-            y: self.y as i32,
-        }
-    }
-}
-
-impl Into<Point> for Vec2<i8> {
-    fn into(self) -> Point {
-        Point {
-            x: self.x as i32,
-            y: self.y as i32,
-        }
-    }
-}
-
-impl Into<Vec2<i32>> for Point {
-    fn into(self) -> Vec2<i32> {
-        Vec2 {
-            x: self.x,
-            y: self.y,
-        }
+impl From<Point> for Vec2<i32> {
+    fn from(value: Point) -> Self {
+        Vec2::new(value.x, value.y)
     }
 }
