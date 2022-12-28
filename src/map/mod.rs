@@ -4,7 +4,7 @@ use bracket_pathfinding::prelude::{Algorithm2D, Point};
 
 use self::{
     plugin::MapSettings,
-    tiles::{pos_to_world, TileType},
+    tiles::{pos_to_world, MapIndex, TileType},
 };
 
 pub(crate) mod pathfinding;
@@ -18,31 +18,62 @@ pub(crate) struct Map {
 }
 
 impl Map {
-    pub(crate) fn index_to_world(&self, index: usize) -> Vec3 {
-        pos_to_world(self.index_to_point2d(index).into(), &self.settings)
+    pub(crate) fn index_to_world(&self, index: MapIndex) -> Vec3 {
+        pos_to_world(self.index_to_point2d(index.into()).into(), &self.settings)
     }
 
     /// Returns the index of a random point on the map.
     #[allow(dead_code)]
-    pub(crate) fn rand_point(&self, rng: Rng) -> usize {
-        rng.usize(0..self.tiles.len())
+    pub(crate) fn rand_point(&self, rng: &mut Rng, walkable: bool) -> MapIndex {
+        // TODO: Instead of bruteforcing until we find a valid tile,
+        // we should isntead filter for all walkable tiles,
+        // then grab a random one of those
+        loop {
+            let index = rng.usize(0..self.tiles.len());
+            if walkable {
+                if self.tiles[index].is_walkable() {
+                    break index.into();
+                }
+            } else {
+                break index.into();
+            }
+        }
     }
 
-    pub(crate) fn rand_index_in_range(&self, rng: &mut Rng, origin: usize, radius: i32) -> usize {
-        let origin_point = self.index_to_point2d(origin);
+    /// Returns a random tile within a range of the original
+    pub(crate) fn rand_index_in_range(
+        &self,
+        rng: &mut Rng,
+        origin: &MapIndex,
+        radius: i32,
+        walkable: bool,
+    ) -> MapIndex {
+        // TODO: Instead of bruteforcing until we find a valid tile,
+        // we should isntead filter for all walkable tiles,
+        // then grab a random one of those
+        loop {
+            let origin_point = self.index_to_point2d(origin.0);
+            let half_radius = (radius as f32 / 2.0) as i32;
 
-        let half_radius = (radius as f32 / 2.0) as i32;
+            let new_point = Point {
+                x: rng
+                    .i32((origin_point.x - half_radius)..(origin_point.x + half_radius))
+                    .clamp(0, self.settings.width - 1),
+                y: rng
+                    .i32((origin_point.y - half_radius)..(origin_point.y + half_radius))
+                    .clamp(0, self.settings.width - 1),
+            };
 
-        let new_point = Point {
-            x: rng
-                .i32((origin_point.x - half_radius)..(origin_point.x + half_radius))
-                .clamp(0, self.settings.width - 1),
-            y: rng
-                .i32((origin_point.y - half_radius)..(origin_point.y + half_radius))
-                .clamp(0, self.settings.width - 1),
-        };
+            let new_index = self.point2d_to_index(new_point);
 
-        self.point2d_to_index(new_point)
+            if walkable {
+                if self.tiles[new_index].is_walkable() {
+                    break new_index.into();
+                }
+            } else {
+                break new_index.into();
+            }
+        }
     }
 
     /// Returns true if the point exist on the map.
@@ -52,6 +83,7 @@ impl Map {
     }
 
     /// Returns true if the index exists on the map.
+    #[allow(dead_code)]
     pub(crate) fn index_exist(&self, index: usize) -> bool {
         (0..self.tiles.len()).contains(&index)
     }
@@ -60,6 +92,8 @@ impl Map {
 #[cfg(test)]
 mod tests {
     use bevy_turborand::{DelegatedRng, GlobalRng};
+
+    use crate::map::tiles::MapIndex;
 
     use super::plugin::{generate_map, MapSettings};
 
@@ -76,8 +110,8 @@ mod tests {
         let map = generate_map(&settings, &mut rng);
 
         for n in 0..16 * 16 {
-            let rand_point = map.rand_index_in_range(rng.get_mut(), n, 5);
-            assert_eq!(map.index_exist(rand_point), true);
+            let rand_point = map.rand_index_in_range(rng.get_mut(), &MapIndex(n), 5, false);
+            assert_eq!(map.index_exist(rand_point.0), true);
         }
     }
 }

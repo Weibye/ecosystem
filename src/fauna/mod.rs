@@ -18,10 +18,7 @@ use crate::{
         scorers::{Hungry, ReproductionScore, Thirsty},
         AgentPlugin,
     },
-    map::{
-        tiles::{create_rand_pos, pos_to_world, TilePos},
-        Map,
-    },
+    map::{tiles::MapIndex, Map},
     utils::lerp_range,
 };
 
@@ -51,11 +48,7 @@ impl Plugin for FaunaPlugin {
 }
 
 /// Events that spawns one unit of fauna
-pub(crate) struct SpawnFauna {
-    /// Position to spawn. If none, will use random position on the board.
-    // TODO: When spawning due to reproduction, the new Fauna should spawn on a free tile next to the parent.
-    pub(crate) position: Option<TilePos>,
-}
+pub(crate) struct SpawnFauna(pub Option<MapIndex>);
 
 pub(crate) struct DespawnFauna {
     entity: Entity,
@@ -79,13 +72,11 @@ fn spawn_agent(
 ) {
     for event in &mut events.iter() {
         let height = 0.4;
-        let spawn_pos = if event.position.is_some() {
-            event.position.unwrap()
+        let spawn_index = if event.0.is_some() {
+            event.0.unwrap()
         } else {
-            create_rand_pos(rng.get_mut(), &map.settings)
+            map.rand_point(rng.get_mut(), true)
         };
-
-        let spawn_translation = pos_to_world(spawn_pos.pos, &map.settings);
 
         let move_and_eat = Steps::build()
             .label("FindFoodMoveAndEat")
@@ -121,7 +112,7 @@ fn spawn_agent(
                     ..default()
                 })),
                 material: materials.add(Color::rgb(0.3, 0.5, 0.5).into()),
-                transform: Transform::from_translation(spawn_translation),
+                transform: Transform::from_translation(map.index_to_world(spawn_index)),
                 ..default()
             },
             Hunger {
@@ -148,7 +139,7 @@ fn spawn_agent(
                 speed: lerp_range(rng.f32(), 1.5..10.0),
             },
             thinker,
-            spawn_pos,
+            spawn_index,
             PickableBundle::default(),
         ));
     }

@@ -6,7 +6,7 @@ use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
 use map::{
     plugin::MapPlugin,
-    tiles::{create_rand_pos, world_to_pos, TilePos},
+    tiles::{world_to_index, MapIndex},
     Map,
 };
 use player::PlayerPlugin;
@@ -86,9 +86,7 @@ fn setup(
         ..default()
     });
 
-    writer.send(SpawnFauna {
-        position: Some(create_rand_pos(rng.get_mut(), &map.settings)),
-    });
+    writer.send(SpawnFauna(Some(map.rand_point(rng.get_mut(), true))));
 }
 
 fn draw_paths(
@@ -101,13 +99,13 @@ fn draw_paths(
             if n == 0 {
                 lines.line(
                     transform.translation(),
-                    map.index_to_world(path.path[0]),
+                    map.index_to_world(path.path[0].into()),
                     0.0,
                 );
             } else {
                 lines.line(
-                    map.index_to_world(path.path[n - 1]),
-                    map.index_to_world(path.path[n]),
+                    map.index_to_world(path.path[n - 1].into()),
+                    map.index_to_world(path.path[n].into()),
                     0.0,
                 );
             }
@@ -117,10 +115,10 @@ fn draw_paths(
 
 #[allow(clippy::type_complexity)]
 fn update_tile_pos(
-    mut q: Query<(&mut TilePos, &GlobalTransform), (With<MoveAbility>, Changed<GlobalTransform>)>,
+    mut q: Query<(&mut MapIndex, &GlobalTransform), (With<MoveAbility>, Changed<GlobalTransform>)>,
     map: Res<Map>,
 ) {
-    for (mut tile_pos, transform) in &mut q {
-        tile_pos.pos = world_to_pos(&transform.translation(), &map.settings);
+    for (mut index, transform) in &mut q {
+        *index = world_to_index(&transform.translation(), &map);
     }
 }

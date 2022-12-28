@@ -85,7 +85,7 @@ fn spawn_map(
                     size: map.settings.tile_size,
                 })),
                 material: materials.add(get_color(map.tiles[index]).into()),
-                transform: Transform::from_translation(map.index_to_world(index)),
+                transform: Transform::from_translation(map.index_to_world(index.into())),
                 ..default()
             },
             PickableBundle::default(),
