@@ -7,7 +7,7 @@ use flora::FloraPlugin;
 use map::{
     plugin::MapPlugin,
     tiles::{world_to_index, MapIndex},
-    Map,
+    Map, TileQuery,
 };
 use player::PlayerPlugin;
 use resource::ResourcePlugin;
@@ -86,7 +86,16 @@ fn setup(
         ..default()
     });
 
-    writer.send(SpawnFauna(Some(map.rand_point(rng.get_mut(), true))));
+    writer.send(SpawnFauna(Some(
+        map.rand_from_query(
+            rng.get_mut(),
+            &TileQuery {
+                walkable: Some(true),
+                ..default()
+            },
+        )
+        .unwrap(),
+    )));
 }
 
 fn draw_paths(

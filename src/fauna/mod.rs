@@ -18,7 +18,7 @@ use crate::{
         scorers::{Hungry, ReproductionScore, Thirsty},
         AgentPlugin,
     },
-    map::{tiles::MapIndex, Map},
+    map::{tiles::MapIndex, Map, TileQuery},
     utils::lerp_range,
 };
 
@@ -75,7 +75,14 @@ fn spawn_agent(
         let spawn_index = if event.0.is_some() {
             event.0.unwrap()
         } else {
-            map.rand_point(rng.get_mut(), true)
+            map.rand_from_query(
+                rng.get_mut(),
+                &TileQuery {
+                    walkable: Some(true),
+                    ..default()
+                },
+            )
+            .unwrap()
         };
 
         let move_and_eat = Steps::build()

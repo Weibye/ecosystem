@@ -17,7 +17,7 @@ use crate::{
         needs::{Hunger, Reproduction, Thirst},
         SpawnFauna,
     },
-    map::{tiles::MapIndex, Map},
+    map::{tiles::MapIndex, Map, TileQuery},
     resource::{FoodSource, WaterSource},
 };
 
@@ -421,14 +421,24 @@ pub(crate) fn idle_action(
                 if let Ok(agent_index) = agents.get(*actor) {
                     // Find a random valid spot on the map within some radius of agent
                     // find a navigation path to it
-                    let target = map.rand_index_in_range(rng.get_mut(), agent_index, 5, true);
-
-                    let path = a_star_search(agent_index.0, target.0, &*map);
-                    if path.success {
-                        cmd.entity(*actor).insert(MovementPath { path: path.steps });
-                        *state = ActionState::Success;
+                    let query = TileQuery {
+                        walkable: Some(true),
+                        distance: Some((3.0, agent_index.0)),
+                        exclude: Some(vec![agent_index.0]),
+                        types: None,
+                    };
+                    let target = map.rand_from_query(rng.get_mut(), &query);
+                    if let Some(target_location) = target {
+                        let path = a_star_search(agent_index.0, target_location.0, &*map);
+                        if path.success {
+                            cmd.entity(*actor).insert(MovementPath { path: path.steps });
+                            *state = ActionState::Success;
+                        } else {
+                            warn!("Unable to find a valid path to target");
+                            *state = ActionState::Failure;
+                        }
                     } else {
-                        warn!("Unable to find a valid path to target");
+                        warn!("Unable to find a random walkable tile in range.");
                         *state = ActionState::Failure;
                     }
                 } else {
