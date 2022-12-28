@@ -786,9 +786,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_turborand"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9c4e02e4fd1405fdaeb1d9b47ff1c60f45dd1b69851a7360dbb0c18997d0319"
+checksum = "5018d621c43d600e40b3e652fe5c592aca553d10ea9db889d87e67d221d6fd43"
 dependencies = [
  "bevy",
  "serde",
