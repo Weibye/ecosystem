@@ -1,28 +1,25 @@
 //! Collection of functionality tied to individual tiles.
 
 use bevy::prelude::{Color, Component, Vec3};
-use bevy_turborand::{rng::Rng, TurboRand};
-use bracket_pathfinding::prelude::Point;
+use bracket_pathfinding::prelude::Algorithm2D;
 
 use crate::utils::Vec2;
 
-use super::plugin::MapSettings;
+use super::{plugin::MapSettings, Map};
 
 /// Marks where on the map an entitiy is located.
 #[derive(Copy, Clone, Debug, PartialEq, Component)]
-pub(crate) struct TilePos {
-    pub(crate) pos: Vec2<i32>,
+pub(crate) struct MapIndex(pub usize);
+
+impl From<usize> for MapIndex {
+    fn from(value: usize) -> Self {
+        MapIndex(value)
+    }
 }
 
-impl TilePos {
-    pub fn from_point(point: Point) -> Self {
-        TilePos {
-            pos: Vec2::new(point.x, point.y),
-        }
-    }
-
-    pub fn from_vec2(vec: Vec2<i32>) -> Self {
-        TilePos { pos: vec }
+impl From<MapIndex> for usize {
+    fn from(value: MapIndex) -> Self {
+        value.0
     }
 }
 
@@ -39,14 +36,6 @@ impl TileType {
         !matches!(self, TileType::Lava)
     }
 }
-
-/// Creates a random tile-position within the map.
-pub(crate) fn create_rand_pos(rng: &mut Rng, settings: &MapSettings) -> TilePos {
-    TilePos {
-        pos: Vec2::new(rng.i32(0..settings.width), rng.i32(0..settings.height)),
-    }
-}
-
 /// Converts from a tile-position to a world-position.
 pub(crate) fn pos_to_world(pos: Vec2<i32>, settings: &MapSettings) -> Vec3 {
     Vec3::new(
@@ -62,6 +51,13 @@ pub(crate) fn world_to_pos(world_pos: &Vec3, settings: &MapSettings) -> Vec2<i32
         ((world_pos.x + (settings.width as f32 / 2.0)) / settings.tile_size) as i32,
         ((world_pos.z + (settings.height as f32 / 2.0)) / settings.tile_size) as i32,
     )
+}
+
+pub(crate) fn world_to_index(world: &Vec3, map: &Map) -> MapIndex {
+    let pos = world_to_pos(world, &map.settings);
+    let index = map.point2d_to_index(pos.into());
+
+    MapIndex(index)
 }
 
 /// Gets the corresponding material color for a `GroundType`.

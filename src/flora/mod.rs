@@ -4,11 +4,10 @@ use bevy::prelude::{
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
-use bracket_pathfinding::prelude::Algorithm2D;
 
 use crate::{
     map::{
-        tiles::{TilePos, TileType},
+        tiles::{MapIndex, TileType},
         Map,
     },
     resource::{FoodSource, WaterSource},
@@ -49,12 +48,11 @@ fn spawn_food(
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                     material: materials.add(FOOD_COLOR.into()),
-                    transform: Transform::from_translation(map.index_to_world(n)),
+                    transform: Transform::from_translation(map.index_to_world(n.into())),
                     ..default()
                 },
                 FoodSource { content: rand },
-                // This should get a tileposition component as well
-                TilePos::from_point(map.index_to_point2d(n)),
+                MapIndex(n),
                 PickableBundle::default(),
             ));
         }
@@ -74,12 +72,11 @@ fn spawn_water(
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                     material: materials.add(WATER_COLOR.into()),
-                    transform: Transform::from_translation(map.index_to_world(n)),
+                    transform: Transform::from_translation(map.index_to_world(n.into())),
                     ..default()
                 },
                 WaterSource { content: 100.0 },
-                // This should get a tileposition component as well
-                TilePos::from_point(map.index_to_point2d(n)),
+                MapIndex(n),
                 PickableBundle::default(),
             ));
         }

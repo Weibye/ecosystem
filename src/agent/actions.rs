@@ -10,17 +10,14 @@ use big_brain::{
     prelude::ActionState,
     thinker::{ActionSpan, Actor},
 };
-use bracket_pathfinding::prelude::{a_star_search, Algorithm2D};
+use bracket_pathfinding::prelude::a_star_search;
 
 use crate::{
     fauna::{
         needs::{Hunger, Reproduction, Thirst},
         SpawnFauna,
     },
-    map::{
-        tiles::{world_to_pos, TilePos},
-        Map,
-    },
+    map::{tiles::MapIndex, Map},
     resource::{FoodSource, WaterSource},
 };
 
@@ -203,7 +200,7 @@ pub(crate) fn drink_action(
 pub(crate) fn move_to_target(
     mut cmd: Commands,
     time: Res<Time>,
-    mut agents: Query<(&mut Transform, &TilePos, &mut MovementPath, &MoveAbility)>,
+    mut agents: Query<(&mut Transform, &MapIndex, &mut MovementPath, &MoveAbility)>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<MoveAction>>,
     map: Res<Map>,
 ) {
@@ -217,7 +214,7 @@ pub(crate) fn move_to_target(
                     let mut available_movement = time.delta_seconds() * ability.speed;
 
                     while available_movement > 0.0 && !path.path.is_empty() {
-                        let delta = map.index_to_world(path.path[0]) - transform.translation;
+                        let delta = map.index_to_world(path.path[0].into()) - transform.translation;
 
                         if delta.length() > available_movement {
                             transform.translation += delta.normalize() * available_movement;
@@ -250,8 +247,8 @@ pub(crate) fn move_to_target(
 // TODO: Make this generic
 pub(crate) fn find_food(
     mut cmd: Commands,
-    agents: Query<(&GlobalTransform, &TilePos), With<EatAbility>>,
-    food_sources: Query<(Entity, &GlobalTransform, &TilePos), With<FoodSource>>,
+    agents: Query<(&GlobalTransform, &MapIndex), With<EatAbility>>,
+    food_sources: Query<(Entity, &GlobalTransform, &MapIndex), With<FoodSource>>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<FindFoodAction>>,
     map: Res<Map>,
 ) {
@@ -260,9 +257,9 @@ pub(crate) fn find_food(
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
                 info!("Looking for food");
-                if let Ok((agent_transform, agent_pos)) = agents.get(*actor) {
+                if let Ok((agent_transform, agent_index)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
-                    if let Some((source_entity, _, source_pos)) =
+                    if let Some((source_entity, _, source_index)) =
                         food_sources.iter().min_by(|(_, ta, _), (_, tb, _)| {
                             let a_distance =
                                 (ta.translation() - agent_transform.translation()).length_squared();
@@ -271,10 +268,8 @@ pub(crate) fn find_food(
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
-                        let source = map.point2d_to_index(agent_pos.pos.into());
-                        let target = map.point2d_to_index(source_pos.pos.into());
                         // Find the path
-                        let path = a_star_search(source, target, &*map);
+                        let path = a_star_search(agent_index.0, source_index.0, &*map);
 
                         if path.success {
                             cmd.entity(*actor)
@@ -316,8 +311,8 @@ pub(crate) fn find_food(
 /// that should be used instead.
 pub(crate) fn find_drink(
     mut cmd: Commands,
-    agents: Query<(&GlobalTransform, &TilePos), With<DrinkAbility>>,
-    water_sources: Query<(Entity, &GlobalTransform, &TilePos), With<WaterSource>>,
+    agents: Query<(&GlobalTransform, &MapIndex), With<DrinkAbility>>,
+    water_sources: Query<(Entity, &GlobalTransform, &MapIndex), With<WaterSource>>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<FindDrinkAction>>,
     map: Res<Map>,
 ) {
@@ -326,9 +321,9 @@ pub(crate) fn find_drink(
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
                 info!("Looking for water");
-                if let Ok((agent_transform, agent_pos)) = agents.get(*actor) {
+                if let Ok((agent_transform, agent_index)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
-                    if let Some((source_entity, _, source_pos)) =
+                    if let Some((source_entity, _, source_index)) =
                         water_sources.iter().min_by(|(_, ta, _), (_, tb, _)| {
                             let a_distance =
                                 (ta.translation() - agent_transform.translation()).length_squared();
@@ -337,10 +332,7 @@ pub(crate) fn find_drink(
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
-                        let source = map.point2d_to_index(agent_pos.pos.into());
-                        let target = map.point2d_to_index(source_pos.pos.into());
-                        // Find the path
-                        let path = a_star_search(source, target, &*map);
+                        let path = a_star_search(agent_index.0, source_index.0, &*map);
 
                         if path.success {
                             cmd.entity(*actor)
@@ -378,24 +370,21 @@ pub(crate) fn find_drink(
 /// Defines how an agent should look for a water-source.
 pub(crate) fn reproduce_action(
     mut writer: EventWriter<SpawnFauna>,
-    mut reproducers: Query<(&mut Reproduction, &GlobalTransform)>,
+    mut reproducers: Query<(&mut Reproduction, &MapIndex)>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<ReproduceAction>>,
-    map: Res<Map>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
                 info!("Reproducing");
-                if let Ok((mut reproducer, transform)) = reproducers.get_mut(*actor) {
+                if let Ok((mut reproducer, map_index)) = reproducers.get_mut(*actor) {
                     if reproducer.value >= 100.0 {
                         info!("SUCESS!");
                         *state = ActionState::Success;
                         reproducer.value = 0.0;
-                        let spawn_pos = world_to_pos(&transform.translation(), &map.settings);
-                        writer.send(SpawnFauna {
-                            position: Some(TilePos::from_vec2(spawn_pos)),
-                        })
+                        // TODO: Spawn new entity in an available spot.
+                        writer.send(SpawnFauna(Some(*map_index)));
                     } else {
                         *state = ActionState::Cancelled;
                     }
@@ -418,7 +407,7 @@ pub(crate) fn reproduce_action(
 
 pub(crate) fn idle_action(
     mut cmd: Commands,
-    agents: Query<(&GlobalTransform, &TilePos), With<MoveAbility>>,
+    agents: Query<&MapIndex, With<MoveAbility>>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<IdleAction>>,
     map: Res<Map>,
     mut rng: ResMut<GlobalRng>,
@@ -429,21 +418,12 @@ pub(crate) fn idle_action(
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Cancelled => *state = ActionState::Failure,
             ActionState::Executing => {
-                if let Ok((_agent_transform, agent_pos)) = agents.get(*actor) {
+                if let Ok(agent_index) = agents.get(*actor) {
                     // Find a random valid spot on the map within some radius of agent
                     // find a navigation path to it
-                    let source = map.point2d_to_index(agent_pos.pos.into());
-                    let target: usize = loop {
-                        let rand_point = map.rand_index_in_range(rng.get_mut(), source, 5);
-                        if rand_point != source
-                            && map.tiles[rand_point].is_walkable()
-                            && map.index_exist(rand_point)
-                        {
-                            break rand_point;
-                        }
-                    };
+                    let target = map.rand_index_in_range(rng.get_mut(), agent_index, 5, true);
 
-                    let path = a_star_search(source, target, &*map);
+                    let path = a_star_search(agent_index.0, target.0, &*map);
                     if path.success {
                         cmd.entity(*actor).insert(MovementPath { path: path.steps });
                         *state = ActionState::Success;
