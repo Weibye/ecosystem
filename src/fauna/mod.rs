@@ -13,7 +13,7 @@ use crate::{
     agent::{
         actions::{
             DrinkAbility, DrinkAction, EatAbility, EatAction, FindDrinkAction, FindFoodAction,
-            MoveAbility, MoveAction, ReproduceAction,
+            IdleAction, MoveAbility, MoveAction, ReproduceAction,
         },
         scorers::{Hungry, ReproductionScore, Thirsty},
         AgentPlugin,
@@ -99,12 +99,18 @@ fn spawn_agent(
             .step(MoveAction)
             .step(DrinkAction);
 
+        let idle_and_move = Steps::build()
+            .label("Idle")
+            .step(IdleAction)
+            .step(MoveAction);
+
         let thinker = Thinker::build()
             .label("AgentThinker")
             .picker(FirstToScore { threshold: 0.8 })
             .when(Hungry, move_and_eat)
             .when(Thirsty, move_and_drink)
-            .when(ReproductionScore, ReproduceAction);
+            .when(ReproductionScore, ReproduceAction)
+            .otherwise(idle_and_move);
 
         // TODO: These ranges should be given by the Fauna archetype
         cmd.spawn((

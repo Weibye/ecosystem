@@ -50,7 +50,7 @@ fn seed_map(mut cmd: Commands, settings: Res<MapSettings>, mut rng: ResMut<Globa
     cmd.insert_resource(generate_map(&settings, &mut rng));
 }
 
-fn generate_map(settings: &MapSettings, rng: &mut GlobalRng) -> Map {
+pub(crate) fn generate_map(settings: &MapSettings, rng: &mut GlobalRng) -> Map {
     let mut tiles: Vec<TileType> = vec![];
 
     for _ in 0..settings.width {

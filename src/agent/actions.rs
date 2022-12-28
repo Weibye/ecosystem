@@ -1,10 +1,11 @@
 use bevy::{
     prelude::{
-        info, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, Transform,
-        With,
+        info, warn, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, ResMut,
+        Transform, With,
     },
     time::Time,
 };
+use bevy_turborand::{DelegatedRng, GlobalRng};
 use big_brain::{
     prelude::ActionState,
     thinker::{ActionSpan, Actor},
@@ -48,6 +49,10 @@ pub(crate) struct DrinkAction;
 /// Action that reproduces and spawn an offspring.
 #[derive(Component, Debug, Clone)]
 pub(crate) struct ReproduceAction;
+
+/// Action that simply wanders randomly.
+#[derive(Component, Debug, Clone)]
+pub(crate) struct IdleAction;
 
 // Action targets
 
@@ -266,12 +271,10 @@ pub(crate) fn find_food(
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
+                        let source = map.point2d_to_index(agent_pos.pos.into());
+                        let target = map.point2d_to_index(source_pos.pos.into());
                         // Find the path
-                        let path = a_star_search(
-                            map.point2d_to_index(agent_pos.pos.into()),
-                            map.point2d_to_index(source_pos.pos.into()),
-                            &*map,
-                        );
+                        let path = a_star_search(source, target, &*map);
 
                         if path.success {
                             cmd.entity(*actor)
@@ -334,12 +337,10 @@ pub(crate) fn find_drink(
                             a_distance.partial_cmp(&b_distance).unwrap()
                         })
                     {
+                        let source = map.point2d_to_index(agent_pos.pos.into());
+                        let target = map.point2d_to_index(source_pos.pos.into());
                         // Find the path
-                        let path = a_star_search(
-                            map.point2d_to_index(agent_pos.pos.into()),
-                            map.point2d_to_index(source_pos.pos.into()),
-                            &*map,
-                        );
+                        let path = a_star_search(source, target, &*map);
 
                         if path.success {
                             cmd.entity(*actor)
@@ -353,7 +354,7 @@ pub(crate) fn find_drink(
 
                             *state = ActionState::Success;
                         } else {
-                            info!("Unable to find a valid path to the food-source");
+                            info!("Unable to find a valid path to the water-source");
                             *state = ActionState::Cancelled;
                         }
                     } else {
@@ -409,6 +410,51 @@ pub(crate) fn reproduce_action(
             }
             ActionState::Success => {
                 info!("Sucessfully reproduced!");
+            }
+            _ => {}
+        }
+    }
+}
+
+pub(crate) fn idle_action(
+    mut cmd: Commands,
+    agents: Query<(&GlobalTransform, &TilePos), With<MoveAbility>>,
+    mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<IdleAction>>,
+    map: Res<Map>,
+    mut rng: ResMut<GlobalRng>,
+) {
+    for (Actor(actor), mut state, _) in &mut actions {
+        info!("Actor {:?} is idling", actor);
+        match *state {
+            ActionState::Requested => *state = ActionState::Executing,
+            ActionState::Cancelled => *state = ActionState::Failure,
+            ActionState::Executing => {
+                if let Ok((_agent_transform, agent_pos)) = agents.get(*actor) {
+                    // Find a random valid spot on the map within some radius of agent
+                    // find a navigation path to it
+                    let source = map.point2d_to_index(agent_pos.pos.into());
+                    let target: usize = loop {
+                        let rand_point = map.rand_index_in_range(rng.get_mut(), source, 5);
+                        if rand_point != source
+                            && map.tiles[rand_point].is_walkable()
+                            && map.index_exist(rand_point)
+                        {
+                            break rand_point;
+                        }
+                    };
+
+                    let path = a_star_search(source, target, &*map);
+                    if path.success {
+                        cmd.entity(*actor).insert(MovementPath { path: path.steps });
+                        *state = ActionState::Success;
+                    } else {
+                        warn!("Unable to find a valid path to target");
+                        *state = ActionState::Failure;
+                    }
+                } else {
+                    warn!("No agent to perform the action");
+                    *state = ActionState::Failure;
+                }
             }
             _ => {}
         }
