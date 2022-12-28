@@ -1,5 +1,5 @@
 use bevy::prelude::{
-    default, shape, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
+    default, shape, App, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
     PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform,
 };
 use bevy_mod_picking::PickableBundle;
@@ -18,7 +18,10 @@ use crate::{
         scorers::{Hungry, ReproductionScore, Thirsty},
         AgentPlugin,
     },
-    landscape::{get_rand_pos, pos_to_world, TilePosition, TileSettings},
+    map::{
+        tiles::{create_rand_pos, pos_to_world, TilePos},
+        Map,
+    },
     utils::lerp_range,
 };
 
@@ -33,7 +36,7 @@ pub(crate) mod needs;
 pub(crate) struct FaunaPlugin;
 
 impl Plugin for FaunaPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
+    fn build(&self, app: &mut App) {
         app.add_plugin(AgentPlugin)
             .add_event::<SpawnFauna>()
             .add_event::<DespawnFauna>()
@@ -51,7 +54,7 @@ impl Plugin for FaunaPlugin {
 pub(crate) struct SpawnFauna {
     /// Position to spawn. If none, will use random position on the board.
     // TODO: When spawning due to reproduction, the new Fauna should spawn on a free tile next to the parent.
-    pub(crate) position: Option<TilePosition>,
+    pub(crate) position: Option<TilePos>,
 }
 
 pub(crate) struct DespawnFauna {
@@ -72,17 +75,17 @@ fn spawn_agent(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut rng: ResMut<GlobalRng>,
     mut events: EventReader<SpawnFauna>,
-    settings: Res<TileSettings>,
+    map: Res<Map>,
 ) {
     for event in &mut events.iter() {
         let height = 0.4;
         let spawn_pos = if event.position.is_some() {
             event.position.unwrap()
         } else {
-            get_rand_pos(rng.get_mut(), &settings)
+            create_rand_pos(rng.get_mut(), &map.settings)
         };
 
-        let spawn_translation = pos_to_world(&spawn_pos, &settings);
+        let spawn_translation = pos_to_world(spawn_pos.pos, &map.settings);
 
         let move_and_eat = Steps::build()
             .label("FindFoodMoveAndEat")
@@ -139,6 +142,7 @@ fn spawn_agent(
                 speed: lerp_range(rng.f32(), 1.5..10.0),
             },
             thinker,
+            spawn_pos,
             PickableBundle::default(),
         ));
     }

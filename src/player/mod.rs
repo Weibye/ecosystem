@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    default, info, Camera3dBundle, Commands, Component, KeyCode, Plugin, Query, Transform, Vec3,
-    With,
+    default, info, App, Camera3dBundle, Commands, Component, KeyCode, Plugin, Query, Transform,
+    Vec3, With,
 };
 use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
@@ -17,7 +17,7 @@ use crate::{
 pub(crate) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
+    fn build(&self, app: &mut App) {
         app.add_plugins(DefaultPickingPlugins)
             // This plugin maps inputs to an input-type agnostic action-state
             // We need to provide it with an enum which stores the possible actions a player could take
