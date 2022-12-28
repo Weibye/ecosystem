@@ -107,7 +107,8 @@ fn draw_paths(q: Query<&MovementPath>, mut lines: ResMut<DebugLines>, map: Res<M
 }
 
 fn update_tile_pos(
-    #[allow(clippy::type_complexity)] mut q: Query<
+    #[allow(clippy::type_complexity)]
+    mut q: Query<
         (&mut TilePos, &GlobalTransform),
         (With<MoveAbility>, Changed<GlobalTransform>),
     >,
