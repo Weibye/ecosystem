@@ -2,7 +2,10 @@ use bevy::prelude::Plugin;
 use big_brain::{BigBrainPlugin, BigBrainStage};
 
 use self::{
-    actions::{drink_action, eat_action, find_drink, find_food, move_to_target, reproduce_action},
+    actions::{
+        drink_action, eat_action, find_drink, find_food, idle_action, move_to_target,
+        reproduce_action,
+    },
     scorers::{hungry_scorer, reproduction_scorer, thirsty_scorer},
 };
 
@@ -20,6 +23,7 @@ impl Plugin for AgentPlugin {
             .add_system_to_stage(BigBrainStage::Actions, drink_action)
             .add_system_to_stage(BigBrainStage::Actions, move_to_target)
             .add_system_to_stage(BigBrainStage::Actions, reproduce_action)
+            .add_system_to_stage(BigBrainStage::Actions, idle_action)
             .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer)
             .add_system_to_stage(BigBrainStage::Scorers, thirsty_scorer)
             .add_system_to_stage(BigBrainStage::Scorers, reproduction_scorer);

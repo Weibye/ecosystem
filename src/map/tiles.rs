@@ -34,6 +34,12 @@ pub(crate) enum TileType {
     Lava,
 }
 
+impl TileType {
+    pub(crate) fn is_walkable(&self) -> bool {
+        !matches!(self, TileType::Lava)
+    }
+}
+
 /// Creates a random tile-position within the map.
 pub(crate) fn create_rand_pos(rng: &mut Rng, settings: &MapSettings) -> TilePos {
     TilePos {
