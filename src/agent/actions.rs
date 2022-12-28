@@ -407,7 +407,7 @@ pub(crate) fn reproduce_action(
 
 pub(crate) fn idle_action(
     mut cmd: Commands,
-    agents: Query<(&GlobalTransform, &MapIndex), With<MoveAbility>>,
+    agents: Query<&MapIndex, With<MoveAbility>>,
     mut actions: Query<(&Actor, &mut ActionState, &ActionSpan), With<IdleAction>>,
     map: Res<Map>,
     mut rng: ResMut<GlobalRng>,
@@ -418,7 +418,7 @@ pub(crate) fn idle_action(
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Cancelled => *state = ActionState::Failure,
             ActionState::Executing => {
-                if let Ok((_agent_transform, agent_index)) = agents.get(*actor) {
+                if let Ok(agent_index) = agents.get(*actor) {
                     // Find a random valid spot on the map within some radius of agent
                     // find a navigation path to it
                     let target = map.rand_index_in_range(rng.get_mut(), agent_index, 5, true);
