@@ -91,17 +91,26 @@ fn setup(
     });
 }
 
-fn draw_paths(q: Query<&MovementPath>, mut lines: ResMut<DebugLines>, map: Res<Map>) {
-    for path in &q {
+fn draw_paths(
+    q: Query<(&GlobalTransform, &MovementPath)>,
+    mut lines: ResMut<DebugLines>,
+    map: Res<Map>,
+) {
+    for (transform, path) in &q {
         for n in 0..path.path.len() {
             if n == 0 {
-                continue;
+                lines.line(
+                    transform.translation(),
+                    map.index_to_world(path.path[0]),
+                    0.0,
+                );
+            } else {
+                lines.line(
+                    map.index_to_world(path.path[n - 1]),
+                    map.index_to_world(path.path[n]),
+                    0.0,
+                );
             }
-            lines.line(
-                map.index_to_world(path.path[n - 1]),
-                map.index_to_world(path.path[n]),
-                0.0,
-            );
         }
     }
 }
