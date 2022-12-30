@@ -26,6 +26,7 @@ impl From<MapIndex> for usize {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub(crate) enum TileType {
     Grass,
+    Dirt,
     Rock,
     Water,
     Lava,
@@ -34,6 +35,10 @@ pub(crate) enum TileType {
 impl TileType {
     pub(crate) fn is_walkable(&self) -> bool {
         !matches!(self, TileType::Lava)
+    }
+
+    pub(crate) fn is_growable(&self) -> bool {
+        matches!(self, TileType::Grass | TileType::Dirt)
     }
 }
 /// Converts from a tile-position to a world-position.
@@ -65,7 +70,8 @@ pub(crate) fn world_to_index(world: &Vec3, map: &Map) -> MapIndex {
 pub(crate) fn get_color(tile_type: TileType) -> Color {
     match tile_type {
         TileType::Grass => Color::rgb(0.1, 0.7, 0.25),
-        TileType::Rock => Color::rgb(0.4, 0.45, 0.4),
+        TileType::Dirt => Color::rgb(0.55, 0.5, 0.3),
+        TileType::Rock => Color::rgb(0.5, 0.5, 0.5),
         TileType::Water => Color::rgb(0.0, 0.4, 0.6),
         TileType::Lava => Color::rgb(1.0, 0.4, 0.0),
     }

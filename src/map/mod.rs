@@ -1,6 +1,6 @@
 use bevy::prelude::{Resource, Vec3};
 use bevy_turborand::{rng::Rng, TurboRand};
-use bracket_pathfinding::prelude::{Algorithm2D, BaseMap};
+use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, Point, SmallVec};
 
 use self::{
     plugin::MapSettings,
@@ -14,6 +14,7 @@ pub(crate) mod tiles;
 #[derive(Default)]
 pub(crate) struct TileQuery {
     pub walkable: Option<bool>,
+    pub growable: Option<bool>,
     pub distance: Option<(f32, usize)>,
     pub exclude: Option<Vec<usize>>,
     pub types: Option<Vec<TileType>>,
@@ -31,7 +32,7 @@ impl Map {
     }
 
     /// Queries for a collection of tiles from the map.
-    pub(crate) fn query_tiles(&self, query: &TileQuery) -> Vec<(usize, &TileType)> {
+    pub(crate) fn query(&self, query: &TileQuery) -> Vec<(usize, &TileType)> {
         self.tiles
             .iter()
             .enumerate()
@@ -47,6 +48,13 @@ impl Map {
             .filter(|(_, e)| {
                 if let Some(walkable) = query.walkable {
                     e.is_walkable() == walkable
+                } else {
+                    true
+                }
+            })
+            .filter(|(_, e)| {
+                if let Some(growable) = query.growable {
+                    e.is_growable() == growable
                 } else {
                     true
                 }
@@ -68,9 +76,37 @@ impl Map {
             .collect()
     }
 
+    pub(crate) fn query_neighbours(
+        &self,
+        index: usize,
+        query: &TileQuery,
+    ) -> SmallVec<[usize; 10]> {
+        let neighbours = self.get_neighbours(index);
+        let mut result = SmallVec::new();
+        for index in neighbours {
+            let mut include = true;
+            // Filter tile
+            if let Some(walkable) = query.walkable {
+                include = self.tiles[index].is_walkable() == walkable;
+            }
+            if let Some(growable) = query.growable {
+                include = self.tiles[index].is_growable() == growable;
+            }
+            if let Some(types) = &query.types {
+                include = types.contains(&self.tiles[index]);
+            }
+
+            if include {
+                result.push(index);
+            }
+        }
+
+        result
+    }
+
     /// Returns a random tile from the query result
     pub(crate) fn rand_from_query(&self, rng: &mut Rng, query: &TileQuery) -> Option<MapIndex> {
-        let result = self.query_tiles(query);
+        let result = self.query(query);
 
         if result.is_empty() {
             None
@@ -86,10 +122,52 @@ impl Map {
     pub(crate) fn index_exist(&self, index: usize) -> bool {
         (0..self.tiles.len()).contains(&index)
     }
+
+    pub(crate) fn get_neighbours(&self, index: usize) -> SmallVec<[usize; 10]> {
+        let mut neighbours = SmallVec::new();
+        let location = self.index_to_point2d(index);
+
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(-1, 0)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(1, 0)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(0, -1)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(0, 1)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(-1, -1)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(-1, 1)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(1, -1)) {
+            neighbours.push(neighbour_index);
+        }
+        if let Some(neighbour_index) = self.valid_neighbour(location, Point::new(1, 1)) {
+            neighbours.push(neighbour_index);
+        }
+
+        neighbours
+    }
+
+    fn valid_neighbour(&self, location: Point, delta: Point) -> Option<usize> {
+        let new_point = location + delta;
+        if self.in_bounds(new_point) {
+            Some(self.point2d_to_index(new_point))
+        } else {
+            None
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use bevy::prelude::default;
     use bevy_turborand::{DelegatedRng, GlobalRng};
 
     use crate::map::TileQuery;
@@ -110,14 +188,20 @@ mod tests {
 
         for n in 0..16 * 16 {
             let query = TileQuery {
-                walkable: None,
                 distance: Some((5.0, n)),
                 exclude: Some(vec![n]),
-                types: None,
+                ..default()
             };
 
             let rand_point = map.rand_from_query(rng.get_mut(), &query);
             assert_eq!(map.index_exist(rand_point.unwrap().0), true);
         }
     }
+
+    // query neighbour should not include self
+    #[test]
+    fn query_neighbour_not_include_self() {}
+    // query neighbour should only ???
+    // All query filters should work
+    //
 }

@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        info, warn, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res, ResMut,
-        Transform, With,
+        default, info, warn, Commands, Component, Entity, EventWriter, GlobalTransform, Query, Res,
+        ResMut, Transform, With,
     },
     time::Time,
 };
@@ -425,7 +425,7 @@ pub(crate) fn idle_action(
                         walkable: Some(true),
                         distance: Some((3.0, agent_index.0)),
                         exclude: Some(vec![agent_index.0]),
-                        types: None,
+                        ..default()
                     };
                     let target = map.rand_from_query(rng.get_mut(), &query);
                     if let Some(target_location) = target {
