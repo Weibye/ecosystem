@@ -55,12 +55,13 @@ pub(crate) fn generate_map(settings: &MapSettings, rng: &mut GlobalRng) -> Map {
 
     for _ in 0..settings.width {
         for _ in 0..settings.height {
-            let index = rng.get_mut().i32(0..=5);
+            let index = rng.get_mut().i32(0..=13);
             tiles.push(match index {
-                0..=2 => TileType::Grass,
-                3 => TileType::Rock,
-                4 => TileType::Water,
-                5 => TileType::Lava,
+                0..=5 => TileType::Grass,
+                6..=8 => TileType::Dirt,
+                9 => TileType::Rock,
+                10..=12 => TileType::Water,
+                13 => TileType::Lava,
                 _ => panic!("Out of range"),
             });
         }
