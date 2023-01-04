@@ -172,7 +172,11 @@ mod tests {
 
     use crate::map::TileQuery;
 
-    use super::{plugin::{generate_map, MapSettings}, Map, tiles::TileType};
+    use super::{
+        plugin::{generate_map, MapSettings},
+        tiles::TileType,
+        Map,
+    };
 
     const SETTINGS: MapSettings = MapSettings {
         width: 8,
@@ -182,7 +186,6 @@ mod tests {
 
     #[test]
     fn no_invalid_random_points() {
-
         let mut rng = GlobalRng::new();
 
         let map = generate_map(&SETTINGS, &mut rng);
@@ -213,7 +216,7 @@ mod tests {
             height: 3,
             tile_size: 1.0,
         };
-    
+
         let map = Map {
             tiles: vec![TileType::Grass; settings.width as usize * settings.height as usize],
             settings: settings,
@@ -331,12 +334,18 @@ mod tests {
             height: 3,
             tile_size: 1.0,
         };
-    
+
         let map = Map {
             tiles: vec![
-                TileType::Grass, TileType::Grass, TileType::Grass,
-                TileType::Dirt, TileType::Rock, TileType::Lava,
-                TileType::Water, TileType::Water, TileType::Lava
+                TileType::Grass,
+                TileType::Grass,
+                TileType::Grass,
+                TileType::Dirt,
+                TileType::Rock,
+                TileType::Lava,
+                TileType::Water,
+                TileType::Water,
+                TileType::Lava,
             ],
             settings,
         };
@@ -352,6 +361,5 @@ mod tests {
         assert!(result.contains(&6));
         assert!(result.contains(&7));
         assert!(result.contains(&8));
-
     }
 }

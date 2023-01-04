@@ -208,7 +208,7 @@ pub(crate) fn move_to_target(
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Cancelled => {
-                if let Ok(_) = agents.get(*actor) {
+                if agents.get(*actor).is_ok() {
                     cmd.entity(*actor).remove::<MovementPath>();
                 }
                 *state = ActionState::Failure;
