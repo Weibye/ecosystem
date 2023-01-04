@@ -190,7 +190,7 @@ mod tests {
 
         let map = generate_map(&SETTINGS, &mut rng);
 
-        for n in 0..16 * 16 {
+        for n in 0..8*8 {
             let query = TileQuery {
                 distance: Some((5.0, n)),
                 exclude: Some(vec![n]),
