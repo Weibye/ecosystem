@@ -172,21 +172,25 @@ mod tests {
 
     use crate::map::TileQuery;
 
-    use super::plugin::{generate_map, MapSettings};
+    use super::{
+        plugin::{generate_map, MapSettings},
+        tiles::TileType,
+        Map,
+    };
+
+    const SETTINGS: MapSettings = MapSettings {
+        width: 8,
+        height: 8,
+        tile_size: 1.0,
+    };
 
     #[test]
     fn no_invalid_random_points() {
-        let settings = MapSettings {
-            width: 16,
-            height: 16,
-            tile_size: 1.0,
-        };
-
         let mut rng = GlobalRng::new();
 
-        let map = generate_map(&settings, &mut rng);
+        let map = generate_map(&SETTINGS, &mut rng);
 
-        for n in 0..16 * 16 {
+        for n in 0..8 * 8 {
             let query = TileQuery {
                 distance: Some((5.0, n)),
                 exclude: Some(vec![n]),
@@ -198,10 +202,164 @@ mod tests {
         }
     }
 
-    // query neighbour should not include self
+    /// Neighbours should not include self.
+    /// And should only get adjacent tiles of distance 1 from the input.
     #[test]
-    fn query_neighbour_not_include_self() {}
-    // query neighbour should only ???
-    // All query filters should work
-    //
+    fn neighbour_corners() {
+        // The map has the following indexes:
+        // 0 1 2
+        // 3 4 5
+        // 6 7 8
+
+        let settings = MapSettings {
+            width: 3,
+            height: 3,
+            tile_size: 1.0,
+        };
+
+        let map = Map {
+            tiles: vec![TileType::Grass; settings.width as usize * settings.height as usize],
+            settings: settings,
+        };
+
+        let top_left = map.get_neighbours(0);
+        assert!(!top_left.contains(&0));
+        assert!(top_left.contains(&1));
+        assert!(!top_left.contains(&2));
+        assert!(top_left.contains(&3));
+        assert!(top_left.contains(&4));
+        assert!(!top_left.contains(&5));
+        assert!(!top_left.contains(&6));
+        assert!(!top_left.contains(&7));
+        assert!(!top_left.contains(&8));
+
+        let top = map.get_neighbours(1);
+        assert!(top.contains(&0));
+        assert!(!top.contains(&1));
+        assert!(top.contains(&2));
+        assert!(top.contains(&3));
+        assert!(top.contains(&4));
+        assert!(top.contains(&5));
+        assert!(!top.contains(&6));
+        assert!(!top.contains(&7));
+        assert!(!top.contains(&8));
+
+        let top_right = map.get_neighbours(2);
+        assert!(!top_right.contains(&0));
+        assert!(top_right.contains(&1));
+        assert!(!top_right.contains(&2));
+        assert!(!top_right.contains(&3));
+        assert!(top_right.contains(&4));
+        assert!(top_right.contains(&5));
+        assert!(!top_right.contains(&6));
+        assert!(!top_right.contains(&7));
+        assert!(!top_right.contains(&8));
+
+        let left = map.get_neighbours(3);
+        assert!(left.contains(&0));
+        assert!(left.contains(&1));
+        assert!(!left.contains(&2));
+        assert!(!left.contains(&3));
+        assert!(left.contains(&4));
+        assert!(!left.contains(&5));
+        assert!(left.contains(&6));
+        assert!(left.contains(&7));
+        assert!(!left.contains(&8));
+
+        let middle = map.get_neighbours(4);
+        assert!(middle.contains(&0));
+        assert!(middle.contains(&1));
+        assert!(middle.contains(&2));
+        assert!(middle.contains(&3));
+        assert!(!middle.contains(&4));
+        assert!(middle.contains(&5));
+        assert!(middle.contains(&6));
+        assert!(middle.contains(&7));
+        assert!(middle.contains(&8));
+
+        let right = map.get_neighbours(5);
+        assert!(!right.contains(&0));
+        assert!(right.contains(&1));
+        assert!(right.contains(&2));
+        assert!(!right.contains(&3));
+        assert!(right.contains(&4));
+        assert!(!right.contains(&5));
+        assert!(!right.contains(&6));
+        assert!(right.contains(&7));
+        assert!(right.contains(&8));
+
+        let bottom_left = map.get_neighbours(6);
+        assert!(!bottom_left.contains(&0));
+        assert!(!bottom_left.contains(&1));
+        assert!(!bottom_left.contains(&2));
+        assert!(bottom_left.contains(&3));
+        assert!(bottom_left.contains(&4));
+        assert!(!bottom_left.contains(&5));
+        assert!(!bottom_left.contains(&6));
+        assert!(bottom_left.contains(&7));
+        assert!(!bottom_left.contains(&8));
+
+        let bottom = map.get_neighbours(7);
+        assert!(!bottom.contains(&0));
+        assert!(!bottom.contains(&1));
+        assert!(!bottom.contains(&2));
+        assert!(bottom.contains(&3));
+        assert!(bottom.contains(&4));
+        assert!(bottom.contains(&5));
+        assert!(bottom.contains(&6));
+        assert!(!bottom.contains(&7));
+        assert!(bottom.contains(&8));
+
+        let bottom_right = map.get_neighbours(8);
+        assert!(!bottom_right.contains(&0));
+        assert!(!bottom_right.contains(&1));
+        assert!(!bottom_right.contains(&2));
+        assert!(!bottom_right.contains(&3));
+        assert!(bottom_right.contains(&4));
+        assert!(bottom_right.contains(&5));
+        assert!(!bottom_right.contains(&6));
+        assert!(bottom_right.contains(&7));
+        assert!(!bottom_right.contains(&8));
+    }
+
+    #[test]
+    fn neighbour_query_filters_default() {
+        // The map has the following indexes:
+        // 0 1 2
+        // 3 4 5
+        // 6 7 8
+
+        let settings = MapSettings {
+            width: 3,
+            height: 3,
+            tile_size: 1.0,
+        };
+
+        let map = Map {
+            tiles: vec![
+                TileType::Grass,
+                TileType::Grass,
+                TileType::Grass,
+                TileType::Dirt,
+                TileType::Rock,
+                TileType::Lava,
+                TileType::Water,
+                TileType::Water,
+                TileType::Lava,
+            ],
+            settings,
+        };
+
+        let result = map.query_neighbours(4, &TileQuery::default());
+        // Should fetch all neighbours except self.
+        assert!(result.contains(&0));
+        assert!(result.contains(&1));
+        assert!(result.contains(&2));
+        assert!(result.contains(&3));
+        assert!(!result.contains(&4));
+        assert!(result.contains(&5));
+        assert!(result.contains(&6));
+        assert!(result.contains(&7));
+        assert!(result.contains(&8));
+    }
 }

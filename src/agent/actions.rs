@@ -109,7 +109,7 @@ pub(crate) fn eat_action(
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
-                info!("Eating");
+                // info!("Eating");
 
                 if let Ok((mut hunger, eating_ability, eat_target)) = eaters.get_mut(*actor) {
                     if let Ok(mut food_source) = food_sources.get_mut(eat_target.target) {
@@ -159,7 +159,7 @@ pub(crate) fn drink_action(
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
-                info!("Drinking");
+                // info!("Drinking");
 
                 if let Ok((mut thirst, drinking_ability, drink_target)) = drinkers.get_mut(*actor) {
                     if let Ok(mut water_source) = water_sources.get_mut(drink_target.target) {
@@ -207,9 +207,14 @@ pub(crate) fn move_to_target(
     for (Actor(actor), mut state, _) in &mut actions {
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
-            ActionState::Cancelled => *state = ActionState::Failure,
+            ActionState::Cancelled => {
+                if agents.get(*actor).is_ok() {
+                    cmd.entity(*actor).remove::<MovementPath>();
+                }
+                *state = ActionState::Failure;
+            }
             ActionState::Executing => {
-                info!("Moving to target");
+                // info!("Moving to target");
                 if let Ok((mut transform, _, mut path, ability)) = agents.get_mut(*actor) {
                     let mut available_movement = time.delta_seconds() * ability.speed;
 
@@ -226,7 +231,7 @@ pub(crate) fn move_to_target(
                         }
                     }
                     if path.path.is_empty() {
-                        info!("We arrive at the end of the path!");
+                        // info!("We arrive at the end of the path!");
                         *state = ActionState::Success;
                     }
                 } else {
@@ -256,7 +261,7 @@ pub(crate) fn find_food(
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
-                info!("Looking for food");
+                // info!("Looking for food");
                 if let Ok((agent_transform, agent_index)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
                     if let Some((source_entity, _, source_index)) =
@@ -320,7 +325,7 @@ pub(crate) fn find_drink(
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
-                info!("Looking for water");
+                // info!("Looking for water");
                 if let Ok((agent_transform, agent_index)) = agents.get(*actor) {
                     // get the food source closes to the agent's current location
                     if let Some((source_entity, _, source_index)) =
@@ -377,7 +382,7 @@ pub(crate) fn reproduce_action(
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {
-                info!("Reproducing");
+                // info!("Reproducing");
                 if let Ok((mut reproducer, map_index)) = reproducers.get_mut(*actor) {
                     if reproducer.value >= 100.0 {
                         info!("SUCESS!");
@@ -413,7 +418,7 @@ pub(crate) fn idle_action(
     mut rng: ResMut<GlobalRng>,
 ) {
     for (Actor(actor), mut state, _) in &mut actions {
-        info!("Actor {:?} is idling", actor);
+        // info!("Actor {:?} is idling", actor);
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Cancelled => *state = ActionState::Failure,
