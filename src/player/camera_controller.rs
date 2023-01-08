@@ -1,8 +1,8 @@
 use std::{f32::consts::PI, ops::Range};
 
 use bevy::prelude::{
-    warn, App, Component, Entity, IntoSystemDescriptor, Plugin, Quat, Query, Res, Resource,
-    Transform, Vec3, With, Without,
+    warn, App, Changed, Component, Entity, IntoSystemDescriptor, Plugin, Quat, Query, Res,
+    Resource, Transform, Vec3, With, Without,
 };
 use leafwing_input_manager::{
     prelude::{ActionState, InputManagerPlugin},
@@ -135,8 +135,17 @@ fn update_camera_input(
 }
 
 fn update_camera_position(
-    mut cameras: Query<(&mut Transform, &CameraController), Without<CameraTarget>>,
-    targets: Query<&Transform, (With<CameraTarget>, Without<CameraController>)>,
+    mut cameras: Query<
+        (&mut Transform, &CameraController),
+        (Without<CameraTarget>, Changed<CameraController>),
+    >,
+    targets: Query<
+        &Transform,
+        (
+            With<CameraTarget>,
+            (Without<CameraController>, Changed<Transform>),
+        ),
+    >,
     settings: Res<CameraControllerSettings>,
 ) {
     for (mut transform, controller) in &mut cameras {

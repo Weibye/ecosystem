@@ -1,8 +1,6 @@
-use bevy::{
-    prelude::{
-        default, info, shape, App, Assets, Camera3dBundle, Color, Commands, KeyCode, Mesh,
-        PbrBundle, Plugin, Query, ResMut, StandardMaterial,
-    },
+use bevy::prelude::{
+    default, info, shape, App, Assets, Camera3dBundle, Color, Commands, KeyCode, Mesh, PbrBundle,
+    Plugin, Query, ResMut, StandardMaterial,
 };
 use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
