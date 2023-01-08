@@ -75,7 +75,7 @@ fn scale_flora(mut q: Query<(&mut Transform, &Flora)>) {
 }
 
 fn get_flora_scale(growth: f32) -> Vec3 {
-    Vec3::ONE * lerp_range(growth, 0.1..2.0)
+    Vec3::ONE * lerp_range(growth, &(0.1..2.0))
 }
 
 const THRESHOLD: f32 = 2.0;
