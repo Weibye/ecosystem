@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, ops::Range};
 
 use bevy::prelude::{
-    warn, App, Changed, Component, Entity, IntoSystemDescriptor, Plugin, Quat, Query, Res,
+    warn, App, Component, Entity, IntoSystemDescriptor, Plugin, Quat, Query, Res,
     Resource, Transform, Vec3, With, Without,
 };
 use leafwing_input_manager::{
@@ -134,19 +134,9 @@ fn update_camera_input(
     }
 }
 
-#[allow(clippy::type_complexity)]
 fn update_camera_position(
-    mut cameras: Query<
-        (&mut Transform, &CameraController),
-        (Without<CameraTarget>, Changed<CameraController>),
-    >,
-    targets: Query<
-        &Transform,
-        (
-            With<CameraTarget>,
-            (Without<CameraController>, Changed<Transform>),
-        ),
-    >,
+    mut cameras: Query<(&mut Transform, &CameraController), Without<CameraTarget>>,
+    targets: Query<&Transform, (With<CameraTarget>, Without<CameraController>)>,
     settings: Res<CameraControllerSettings>,
 ) {
     for (mut transform, controller) in &mut cameras {
