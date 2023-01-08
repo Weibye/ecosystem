@@ -19,7 +19,10 @@ use self::camera_controller::{
     CameraTarget,
 };
 
+use self::user_interface::UserInterfacePlugin;
+
 mod camera_controller;
+mod user_interface;
 
 /// The PlayerPlugin governs everything that has to do with how the player interacts with the simulation.
 pub(crate) struct PlayerPlugin;
@@ -35,6 +38,7 @@ impl Plugin for PlayerPlugin {
                     zoom: 5.0..30.0,
                 },
             })
+            .add_plugin(UserInterfacePlugin)
             .add_startup_system(spawn_player)
             .add_system(output_fauna_data)
             .add_system(output_flora_data);
