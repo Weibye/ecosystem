@@ -88,6 +88,7 @@ impl Plugin for CameraControllerPlugin {
     }
 }
 
+/// Defines the actions the camera-controller can take.
 #[derive(Actionlike, Clone, Debug)]
 pub(crate) enum CameraMovement {
     Move,

@@ -1,24 +1,33 @@
 use bevy::{
-    prelude::{info, App, Plugin, Res, ResMut, Resource, SystemSet},
-    time::{FixedTimestep, Time},
+    prelude::{App, EventReader, Plugin, Res, ResMut, Resource, SystemSet},
+    time::FixedTimestep,
 };
+use leafwing_input_manager::Actionlike;
 
 pub(crate) struct ChronoPlugin;
 
 impl Plugin for ChronoPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(TimeMultiplier(100))
+        app.add_event::<TimeMultiplierEvent>()
+            .insert_resource(TimeMultiplier(get_multiplier(SimulationSpeed::Normal)))
             .insert_resource(Chrono::default())
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::steps_per_second(15.0))
                     .with_system(update_time),
-            );
+            )
+            .add_system(update_simulation_speed);
     }
 }
 
 #[derive(Resource)]
-struct TimeMultiplier(u8);
+pub(crate) struct TimeMultiplier(u8);
+
+impl TimeMultiplier {
+    pub(crate) fn value(&self) -> u8 {
+        self.0
+    }
+}
 
 #[derive(Resource, Default)]
 pub(crate) struct Chrono {
@@ -32,21 +41,51 @@ pub(crate) struct Chrono {
     pub(crate) year: u32,
 }
 
+#[derive(Actionlike, Debug, Clone, Copy)]
+pub(crate) enum SimulationSpeed {
+    Paused,
+    Normal,
+    Fast,
+    SuperFast,
+}
+
+pub(crate) struct TimeMultiplierEvent(pub(crate) SimulationSpeed);
+
+pub(crate) const fn get_multiplier(speed: SimulationSpeed) -> u8 {
+    match speed {
+        SimulationSpeed::Paused => 0,
+        SimulationSpeed::Normal => 1,
+        SimulationSpeed::Fast => 4,
+        SimulationSpeed::SuperFast => 8,
+    }
+}
+
 const TICKS_PER_HOUR: u32 = 60;
 const HOURS_PER_DAY: u32 = 24;
 const DAYS_PER_YEAR: u32 = 30;
 
-fn update_time(time: Res<Time>, mut chrono: ResMut<Chrono>, multiplier: Res<TimeMultiplier>) {
-    chrono.tick += multiplier.0 as u32;
+fn update_simulation_speed(
+    mut reader: EventReader<TimeMultiplierEvent>,
+    mut speed: ResMut<TimeMultiplier>,
+) {
+    // We only care about the newest event if there has been multiple this frame.
+    if let Some(value) = reader.iter().last() {
+        speed.0 = get_multiplier(value.0);
+    }
+}
+
+fn update_time(mut chrono: ResMut<Chrono>, speed: Res<TimeMultiplier>) {
+    // How many ticks to advance per update rate of this system.
+    chrono.tick += speed.0 as u32;
 
     chrono.hour = hours_from_tick(chrono.tick);
     chrono.day = days_from_tick(chrono.tick);
     chrono.year = years_from_tick(chrono.tick);
 
-    info!(
-        "Tick: {:?} | Hour: {:?} | Day: {:?} | Year: {:?}",
-        chrono.tick, chrono.hour, chrono.day, chrono.year
-    );
+    // info!(
+    //     "Tick: {:?} | Hour: {:?} | Day: {:?} | Year: {:?}",
+    //     chrono.tick, chrono.hour, chrono.day, chrono.year
+    // );
 }
 
 fn hours_from_tick(tick: u32) -> u32 {
