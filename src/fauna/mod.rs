@@ -123,27 +123,27 @@ fn spawn_agent(
                 ..default()
             },
             Hunger {
-                per_second: lerp_range(rng.f32(), 0.5..3.0),
-                value: lerp_range(rng.f32(), 20.0..80.0),
+                per_second: lerp_range(rng.f32(), &(0.5..3.0)),
+                value: lerp_range(rng.f32(), &(20.0..80.0)),
             },
             Thirst {
-                per_second: lerp_range(rng.f32(), 0.5..5.0),
-                value: lerp_range(rng.f32(), 20.0..80.0),
+                per_second: lerp_range(rng.f32(), &(0.5..5.0)),
+                value: lerp_range(rng.f32(), &(20.0..80.0)),
             },
             Reproduction {
-                value: lerp_range(rng.f32(), 20.0..80.0),
+                value: lerp_range(rng.f32(), &(20.0..80.0)),
             },
             Health {
-                value: lerp_range(rng.f32(), 20.0..80.0),
+                value: lerp_range(rng.f32(), &(20.0..80.0)),
             },
             EatAbility {
-                speed: lerp_range(rng.f32(), 20.0..80.0),
+                speed: lerp_range(rng.f32(), &(20.0..80.0)),
             },
             DrinkAbility {
-                speed: lerp_range(rng.f32(), 20.0..80.0),
+                speed: lerp_range(rng.f32(), &(20.0..80.0)),
             },
             MoveAbility {
-                speed: lerp_range(rng.f32(), 1.5..10.0),
+                speed: lerp_range(rng.f32(), &(1.5..10.0)),
             },
             thinker,
             spawn_index,

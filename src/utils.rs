@@ -26,7 +26,7 @@ pub(crate) fn lerp(value: f32, min: f32, max: f32) -> f32 {
 /// Linearly interpolates between two values.
 ///
 /// Value should be in range 0..=1.
-pub(crate) fn lerp_range(value: f32, range: Range<f32>) -> f32 {
+pub(crate) fn lerp_range(value: f32, range: &Range<f32>) -> f32 {
     lerp(value, range.start, range.end)
 }
 

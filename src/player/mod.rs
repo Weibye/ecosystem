@@ -1,80 +1,93 @@
 use bevy::prelude::{
-    default, info, App, Camera3dBundle, Commands, Component, KeyCode, Plugin, Query, Transform,
-    Vec3, With,
+    default, info, shape, App, Assets, Camera3dBundle, Color, Commands, KeyCode, Mesh, PbrBundle,
+    Plugin, Query, ResMut, StandardMaterial,
 };
 use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
-    prelude::{ActionState, InputManagerPlugin, InputMap, VirtualDPad},
-    Actionlike, InputManagerBundle,
+    axislike::VirtualAxis,
+    prelude::{InputMap, SingleAxis, VirtualDPad},
+    InputManagerBundle,
 };
 
 use crate::{
     fauna::needs::{Health, Hunger, Reproduction, Thirst},
     resource::{FoodSource, WaterSource},
-    utils::project_to_plane,
 };
 
+use self::camera_controller::{
+    CameraController, CameraControllerPlugin, CameraControllerSettings, CameraMovement,
+    CameraTarget,
+};
+
+mod camera_controller;
+
+/// The PlayerPlugin governs everything that has to do with how the player interacts with the simulation.
 pub(crate) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(DefaultPickingPlugins)
-            // This plugin maps inputs to an input-type agnostic action-state
-            // We need to provide it with an enum which stores the possible actions a player could take
-            .add_plugin(InputManagerPlugin::<Action>::default())
+            .add_plugin(CameraControllerPlugin {
+                settings: CameraControllerSettings {
+                    translation_speed: 0.1,
+                    rotation_speed: 0.05,
+                    zoom_speed: 0.04,
+                    zoom: 5.0..30.0,
+                },
+            })
             .add_startup_system(spawn_player)
-            .add_system(move_player)
             .add_system(output_fauna_data)
             .add_system(output_flora_data);
     }
 }
 
-#[derive(Component, Debug)]
-struct Player;
+fn spawn_player(
+    mut cmd: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // Spawn camera target
 
-#[derive(Actionlike, Clone, Debug)]
-enum Action {
-    Move,
-}
+    let target = cmd
+        .spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
+                material: materials.add(Color::PINK.into()),
+                ..default()
+            },
+            CameraTarget,
+        ))
+        .id();
 
-fn spawn_player(mut cmd: Commands) {
-    // Spawn camera
+    //  Spawn camera
     cmd.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(10.0, 10.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        },
+        Camera3dBundle::default(),
         PickingCameraBundle::default(),
-        InputManagerBundle::<Action> {
-            input_map: InputMap::new([(
-                VirtualDPad {
-                    up: KeyCode::W.into(),
-                    down: KeyCode::S.into(),
-                    left: KeyCode::A.into(),
-                    right: KeyCode::D.into(),
-                },
-                Action::Move,
-            )])
-            .build(),
+        InputManagerBundle::<CameraMovement> {
+            input_map: InputMap::default()
+                .insert(
+                    VirtualDPad {
+                        up: KeyCode::W.into(),
+                        down: KeyCode::S.into(),
+                        left: KeyCode::A.into(),
+                        right: KeyCode::D.into(),
+                    },
+                    CameraMovement::Move,
+                )
+                .insert(
+                    VirtualAxis {
+                        negative: KeyCode::Q.into(),
+                        positive: KeyCode::E.into(),
+                    },
+                    CameraMovement::Rotate,
+                )
+                .insert(SingleAxis::mouse_wheel_y(), CameraMovement::Zoom)
+                // Add action to increase and decrease simulation speed
+                .build(),
             ..default()
         },
-        Player,
+        CameraController::new(target),
     ));
-}
-
-const SPEED: f32 = 0.1;
-
-fn move_player(mut q: Query<(&ActionState<Action>, &mut Transform), With<Player>>) {
-    for (action, mut transform) in &mut q {
-        if action.pressed(Action::Move) {
-            let axis_pair = action.axis_pair(Action::Move).unwrap();
-            let forward = project_to_plane(transform.forward(), Vec3::Y).normalize();
-            let right = project_to_plane(transform.right(), Vec3::Y).normalize();
-
-            transform.translation +=
-                forward * axis_pair.y() * SPEED + right * axis_pair.x() * SPEED;
-        }
-    }
 }
 
 fn output_fauna_data(q: Query<(&Selection, &Hunger, &Thirst, &Reproduction, &Health)>) {
