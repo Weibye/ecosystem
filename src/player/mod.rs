@@ -1,25 +1,33 @@
 use bevy::prelude::{
-    default, info, shape, App, Assets, Camera3dBundle, Color, Commands, KeyCode, Mesh, PbrBundle,
-    Plugin, Query, ResMut, StandardMaterial,
+    default, info, shape, App, Assets, Camera3dBundle, Color, Commands, EventWriter, KeyCode, Mesh,
+    PbrBundle, Plugin, Query, ResMut, StandardMaterial,
 };
 use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
     axislike::VirtualAxis,
-    prelude::{InputMap, SingleAxis, VirtualDPad},
+    prelude::{ActionState, InputManagerPlugin, InputMap, SingleAxis, VirtualDPad},
     InputManagerBundle,
 };
 
 use crate::{
+    chronos::{SimulationSpeed, TimeMultiplierEvent},
     fauna::needs::{Health, Hunger, Reproduction, Thirst},
     resource::{FoodSource, WaterSource},
 };
 
-use self::camera_controller::{
-    CameraController, CameraControllerPlugin, CameraControllerSettings, CameraMovement,
-    CameraTarget,
+use self::{
+    camera_controller::{
+        CameraController, CameraControllerPlugin, CameraControllerSettings, CameraMovement,
+        CameraTarget,
+    },
+    widgets::WidgetPlugin,
 };
 
+use self::user_interface::UserInterfacePlugin;
+
 mod camera_controller;
+mod user_interface;
+mod widgets;
 
 /// The PlayerPlugin governs everything that has to do with how the player interacts with the simulation.
 pub(crate) struct PlayerPlugin;
@@ -35,9 +43,48 @@ impl Plugin for PlayerPlugin {
                     zoom: 5.0..30.0,
                 },
             })
+            .add_plugin(InputManagerPlugin::<SimulationSpeed>::default())
+            .add_plugin(UserInterfacePlugin)
+            .add_plugin(WidgetPlugin)
             .add_startup_system(spawn_player)
+            .add_startup_system(spawn_simulation_input)
+            .add_system(update_simulation_speed)
             .add_system(output_fauna_data)
             .add_system(output_flora_data);
+    }
+}
+
+fn spawn_simulation_input(mut cmd: Commands) {
+    cmd.spawn(InputManagerBundle::<SimulationSpeed> {
+        input_map: InputMap::default()
+            // TODO: This should be "toggle pause"
+            // when resuming again, it should resume to whatever speed was before pausing
+            .insert(KeyCode::Space, SimulationSpeed::Paused)
+            .insert(KeyCode::Key1, SimulationSpeed::Normal)
+            .insert(KeyCode::Key2, SimulationSpeed::Fast)
+            .insert(KeyCode::Key3, SimulationSpeed::SuperFast)
+            .build(),
+        ..default()
+    });
+}
+
+fn update_simulation_speed(
+    q: Query<&ActionState<SimulationSpeed>>,
+    mut event: EventWriter<TimeMultiplierEvent>,
+) {
+    for action in &q {
+        if action.just_pressed(SimulationSpeed::Paused) {
+            event.send(TimeMultiplierEvent(SimulationSpeed::Paused));
+        }
+        if action.just_pressed(SimulationSpeed::Normal) {
+            event.send(TimeMultiplierEvent(SimulationSpeed::Normal));
+        }
+        if action.just_pressed(SimulationSpeed::Fast) {
+            event.send(TimeMultiplierEvent(SimulationSpeed::Fast));
+        }
+        if action.just_pressed(SimulationSpeed::SuperFast) {
+            event.send(TimeMultiplierEvent(SimulationSpeed::SuperFast));
+        }
     }
 }
 
