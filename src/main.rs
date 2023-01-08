@@ -2,6 +2,7 @@ use agent::actions::{MoveAbility, MovementPath};
 use bevy::prelude::*;
 use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
+use chronos::ChronoPlugin;
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
 use map::{
@@ -13,6 +14,7 @@ use player::PlayerPlugin;
 use resource::ResourcePlugin;
 
 mod agent;
+mod chronos;
 mod fauna;
 mod flora;
 mod map;
@@ -57,6 +59,7 @@ fn main() {
         .add_plugin(FloraPlugin)
         .add_plugin(ResourcePlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(ChronoPlugin)
         .add_startup_system_to_stage(AppStage::SpawnMap, setup)
         .add_system(draw_paths)
         .add_system(update_tile_pos)
