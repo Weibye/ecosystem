@@ -134,6 +134,7 @@ fn update_camera_input(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_camera_position(
     mut cameras: Query<
         (&mut Transform, &CameraController),
