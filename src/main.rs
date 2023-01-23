@@ -103,7 +103,7 @@ fn setup(
     // Sun starts straight below at 00:00
     const SUN_POSITION: Vec3 = Vec3::new(0.0, -RADIUS, 0.0);
     // Moon starts straight above at 00:00
-    const MOON_POSITION: Vec3 = Vec3::new(0.0, RADIUS, 0.0); 
+    const MOON_POSITION: Vec3 = Vec3::new(0.0, RADIUS, 0.0);
 
     // ambient light
     cmd.insert_resource(AmbientLight {
@@ -134,7 +134,7 @@ fn setup(
                     alpha_mode: AlphaMode::Blend,
                     ..default()
                 }),
-                transform: Transform::from_translation(SUN_POSITION), 
+                transform: Transform::from_translation(SUN_POSITION),
 
                 ..default()
             },
@@ -160,7 +160,7 @@ fn setup(
                     ..default()
                 })),
                 material: materials.add(Color::BLUE.into()),
-                transform: Transform::from_translation(MOON_POSITION), 
+                transform: Transform::from_translation(MOON_POSITION),
                 ..default()
             },
             Moon,
@@ -174,7 +174,8 @@ fn setup(
                     color: Color::rgb(0.3, 0.5, 0.3),
                     ..default()
                 },
-                transform: Transform::from_translation(MOON_POSITION).looking_at(-Vec3::Y, -Vec3::Z),
+                transform: Transform::from_translation(MOON_POSITION)
+                    .looking_at(-Vec3::Y, -Vec3::Z),
                 ..default()
             },
             Moon,
