@@ -197,8 +197,8 @@ fn setup(
 fn daylight_cycle(
     mut atmosphere: AtmosphereMut<Nishita>,
     mut skyRoot: Query<&mut Transform, With<SkyRoot>>,
-    mut sunlight: Query<&mut DirectionalLight, With<Sun>>,
-    mut moonlight: Query<&mut DirectionalLight, With<Moon>>,
+    mut sunlight: Query<&mut DirectionalLight, (With<Sun>, Without<Moon>)>,
+    mut moonlight: Query<&mut DirectionalLight, (With<Moon>, Without<Sun>)>,
     mut ambient: ResMut<AmbientLight>,
     time: Res<Time>,
     chrono: Res<Chrono>,
