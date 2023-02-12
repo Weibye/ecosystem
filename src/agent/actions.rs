@@ -8,7 +8,7 @@ use bevy::{
 use bevy_turborand::{DelegatedRng, GlobalRng};
 use big_brain::{
     prelude::{ActionBuilder, ActionState},
-    thinker::{Action, ActionSpan, Actor},
+    thinker::{ActionSpan, Actor},
 };
 use bracket_pathfinding::prelude::a_star_search;
 
