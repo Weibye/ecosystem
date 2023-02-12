@@ -1,17 +1,17 @@
 // SCORES
 
 use bevy::prelude::{Changed, Component, Query, With};
-use big_brain::{scorers::Score, thinker::Actor};
+use big_brain::{prelude::ScorerBuilder, scorers::Score, thinker::Actor};
 
 use crate::fauna::needs::{Hunger, Reproduction, Thirst};
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ScorerBuilder)]
 pub(crate) struct Hungry;
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ScorerBuilder)]
 pub(crate) struct Thirsty;
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ScorerBuilder)]
 pub(crate) struct ReproductionScore;
 
 pub(crate) fn hungry_scorer(

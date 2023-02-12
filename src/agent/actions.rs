@@ -7,7 +7,7 @@ use bevy::{
 };
 use bevy_turborand::{DelegatedRng, GlobalRng};
 use big_brain::{
-    prelude::ActionState,
+    prelude::{ActionBuilder, ActionState},
     thinker::{ActionSpan, Actor},
 };
 use bracket_pathfinding::prelude::a_star_search;
@@ -24,31 +24,31 @@ use crate::{
 // ACTIONS
 
 /// Action that moves to a target.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct MoveAction;
 
 /// Action that figures out which food-source to get.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct FindFoodAction;
 
 /// Action that figures out which water-source to get.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct FindDrinkAction;
 
 /// Action that eats from a food source.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct EatAction;
 
 /// Action that drinks from a water source.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct DrinkAction;
 
 /// Action that reproduces and spawn an offspring.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct ReproduceAction;
 
 /// Action that simply wanders randomly.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ActionBuilder)]
 pub(crate) struct IdleAction;
 
 // Action targets
