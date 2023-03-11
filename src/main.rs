@@ -30,8 +30,6 @@ enum WorldCreationSet {
     SpawnFauna,
 }
 
-
-
 fn main() {
     App::new()
         .configure_set(
@@ -39,9 +37,11 @@ fn main() {
                 WorldCreationSet::SeedMap,
                 WorldCreationSet::SpawnMap,
                 WorldCreationSet::SpawnFlora,
-                WorldCreationSet::SpawnFauna
-            ).chain()
-            .in_base_set(StartupSet::Startup))
+                WorldCreationSet::SpawnFauna,
+            )
+                .chain()
+                .in_base_set(StartupSet::Startup),
+        )
         .add_plugins(DefaultPlugins)
         .add_plugin(RngPlugin::default())
         .add_plugin(DebugLinesPlugin::default())

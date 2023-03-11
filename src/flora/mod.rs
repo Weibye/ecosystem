@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         default, info, shape, App, Assets, Color, Commands, Component, EventReader, EventWriter,
-        Mesh, PbrBundle, Plugin, Query, Res, ResMut, StandardMaterial,
-        Transform, Vec3, IntoSystemConfigs,
+        IntoSystemConfigs, Mesh, PbrBundle, Plugin, Query, Res, ResMut, StandardMaterial,
+        Transform, Vec3,
     },
     utils::HashMap,
 };

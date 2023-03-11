@@ -1,4 +1,4 @@
-use bevy::prelude::{App, EventReader, Plugin, Res, ResMut, Resource, IntoSystemConfig, CoreSet};
+use bevy::prelude::{App, CoreSet, EventReader, IntoSystemConfig, Plugin, Res, ResMut, Resource};
 use leafwing_input_manager::Actionlike;
 
 pub(crate) struct ChronoPlugin;

@@ -1,5 +1,5 @@
-use bevy::prelude::Plugin;
-use big_brain::{BigBrainPlugin, BigBrainStage};
+use bevy::prelude::{IntoSystemConfig, Plugin};
+use big_brain::{BigBrainPlugin, BigBrainSet};
 
 use self::{
     actions::{
@@ -17,15 +17,20 @@ pub(crate) struct AgentPlugin;
 impl Plugin for AgentPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(BigBrainPlugin)
-            .add_system_to_stage(BigBrainStage::Actions, find_food)
-            .add_system_to_stage(BigBrainStage::Actions, find_drink)
-            .add_system_to_stage(BigBrainStage::Actions, eat_action)
-            .add_system_to_stage(BigBrainStage::Actions, drink_action)
-            .add_system_to_stage(BigBrainStage::Actions, move_to_target)
-            .add_system_to_stage(BigBrainStage::Actions, reproduce_action)
-            .add_system_to_stage(BigBrainStage::Actions, idle_action)
-            .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer)
-            .add_system_to_stage(BigBrainStage::Scorers, thirsty_scorer)
-            .add_system_to_stage(BigBrainStage::Scorers, reproduction_scorer);
+            .add_systems(
+                (
+                    find_food,
+                    find_drink,
+                    eat_action,
+                    drink_action,
+                    move_to_target,
+                    reproduce_action,
+                    idle_action,
+                )
+                    .in_set(BigBrainSet::Actions),
+            )
+            .add_systems(
+                (hungry_scorer, thirsty_scorer, reproduction_scorer).in_set(BigBrainSet::Scorers),
+            );
     }
 }

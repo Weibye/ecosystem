@@ -1,8 +1,8 @@
 use std::{f32::consts::PI, ops::Range};
 
 use bevy::prelude::{
-    warn, App, Component, Entity, Plugin, Quat, Query, Res, Resource,
-    Transform, Vec3, With, Without,
+    warn, App, Component, Entity, Plugin, Quat, Query, Res, Resource, Transform, Vec3, With,
+    Without,
 };
 use leafwing_input_manager::{
     prelude::{ActionState, InputManagerPlugin},
