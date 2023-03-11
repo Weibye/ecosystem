@@ -340,7 +340,7 @@ mod tests {
                 TileType::Grass,
                 TileType::Grass,
                 TileType::Grass,
-                TileType::Dirt,
+                TileType::Sand,
                 TileType::Rock,
                 TileType::DeepWater,
                 TileType::ShallowWater,
