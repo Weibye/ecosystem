@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, ops::Range};
 
 use bevy::prelude::{
-    warn, App, Component, Entity, IntoSystemDescriptor, Plugin, Quat, Query, Res, Resource,
+    warn, App, Component, Entity, Plugin, Quat, Query, Res, Resource,
     Transform, Vec3, With, Without,
 };
 use leafwing_input_manager::{

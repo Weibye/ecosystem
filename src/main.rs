@@ -22,32 +22,26 @@ mod player;
 mod resource;
 mod utils;
 
-#[derive(StageLabel)]
-enum AppStage {
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+enum WorldCreationSet {
     SeedMap,
     SpawnMap,
     SpawnFlora,
     SpawnFauna,
 }
 
+
+
 fn main() {
     App::new()
-        .add_startup_stage(AppStage::SeedMap, SystemStage::parallel())
-        .add_startup_stage_after(
-            AppStage::SeedMap,
-            AppStage::SpawnMap,
-            SystemStage::parallel(),
-        )
-        .add_startup_stage_after(
-            AppStage::SeedMap,
-            AppStage::SpawnFlora,
-            SystemStage::parallel(),
-        )
-        .add_startup_stage_after(
-            AppStage::SpawnFlora,
-            AppStage::SpawnFauna,
-            SystemStage::parallel(),
-        )
+        .configure_set(
+            (
+                WorldCreationSet::SeedMap,
+                WorldCreationSet::SpawnMap,
+                WorldCreationSet::SpawnFlora,
+                WorldCreationSet::SpawnFauna
+            ).chain()
+            .in_base_set(StartupSet::Startup))
         .add_plugins(DefaultPlugins)
         .add_plugin(RngPlugin::default())
         .add_plugin(DebugLinesPlugin::default())
@@ -60,7 +54,7 @@ fn main() {
         .add_plugin(ResourcePlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(ChronoPlugin)
-        .add_startup_system_to_stage(AppStage::SpawnMap, setup)
+        .add_startup_system_to_stage(WorldCreationSet::SpawnMap, setup)
         .add_system(draw_paths)
         .add_system(update_tile_pos)
         .run();

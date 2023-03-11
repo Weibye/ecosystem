@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    default, shape, App, Assets, Color, Commands, Entity, EventReader, IntoSystemDescriptor, Mesh,
-    PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform,
+    default, shape, App, Assets, Color, Commands, Entity, EventReader, Mesh,
+    PbrBundle, Plugin, Res, ResMut, StandardMaterial, Transform, SystemSet, IntoSystemConfigs,
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng};
@@ -29,6 +29,11 @@ use self::needs::{
 
 pub(crate) mod needs;
 
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+enum StatusSet {
+    StatusUpdate
+}
+
 /// This plugin governs the needs of the fauna, as well as
 pub(crate) struct FaunaPlugin;
 
@@ -37,12 +42,16 @@ impl Plugin for FaunaPlugin {
         app.add_plugin(AgentPlugin)
             .add_event::<SpawnFauna>()
             .add_event::<DespawnFauna>()
-            .add_system(hunger_decay.before(health_update))
-            .add_system(thirst_decay.before(health_update))
-            .add_system(health_update.before(reproduction_update))
-            .add_system(reproduction_update)
-            .add_system(death.after(health_update))
-            .add_system(despawn_agent.after(death))
+            .add_systems(
+                (hunger_decay, thirst_decay)
+                .before(health_update)
+                .in_set(StatusSet::StatusUpdate))
+            .add_system(health_update.in_set(StatusSet::StatusUpdate))
+            .add_systems(
+                (reproduction_update, death, despawn_agent)
+                .chain()
+                .after(health_update)
+                .in_set(StatusSet::StatusUpdate))
             .add_system(spawn_agent);
     }
 }

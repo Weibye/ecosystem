@@ -5,7 +5,7 @@ use bevy::prelude::{
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
 
-use crate::AppStage;
+use crate::WorldCreationSet;
 
 use super::{
     tiles::{get_color, TileType},
@@ -40,8 +40,8 @@ impl Plugin for MapPlugin {
             width: self.map_size.0,
             height: self.map_size.1,
         })
-        .add_startup_system_to_stage(AppStage::SeedMap, seed_map)
-        .add_startup_system_to_stage(AppStage::SpawnMap, spawn_map);
+        .add_system(seed_map.in_set(WorldCreationSet::SeedMap))
+        .add_system(spawn_map.in_set(WorldCreationSet::SpawnMap))
     }
 }
 
@@ -84,6 +84,7 @@ fn spawn_map(
             PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Plane {
                     size: map.settings.tile_size,
+                    subdivisions: 0,
                 })),
                 material: materials.add(get_color(map.tiles[index]).into()),
                 transform: Transform::from_translation(map.index_to_world(index.into())),
