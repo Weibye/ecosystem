@@ -49,6 +49,7 @@ impl Plugin for PlayerPlugin {
             .add_startup_system(spawn_player)
             .add_startup_system(spawn_simulation_input)
             .add_system(update_simulation_speed)
+            // These should be ran after simulation update
             .add_system(output_fauna_data)
             .add_system(output_flora_data);
     }

@@ -1,21 +1,17 @@
-use bevy::{
-    prelude::{App, EventReader, Plugin, Res, ResMut, Resource, SystemSet},
-    time::FixedTimestep,
-};
+use bevy::prelude::{App, CoreSet, EventReader, IntoSystemConfig, Plugin, Res, ResMut, Resource};
 use leafwing_input_manager::Actionlike;
 
 pub(crate) struct ChronoPlugin;
+
+// TODO: Calculate time on a fixed update
 
 impl Plugin for ChronoPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<TimeMultiplierEvent>()
             .insert_resource(TimeMultiplier(get_multiplier(SimulationSpeed::Normal)))
             .insert_resource(Chrono::default())
-            .add_system_set(
-                SystemSet::new()
-                    .with_run_criteria(FixedTimestep::steps_per_second(15.0))
-                    .with_system(update_time),
-            )
+            // This should be updated in pre-update
+            .add_system(update_time.in_base_set(CoreSet::First))
             .add_system(update_simulation_speed);
     }
 }

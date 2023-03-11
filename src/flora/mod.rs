@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         default, info, shape, App, Assets, Color, Commands, Component, EventReader, EventWriter,
-        IntoSystemDescriptor, Mesh, PbrBundle, Plugin, Query, Res, ResMut, StandardMaterial,
+        IntoSystemConfigs, Mesh, PbrBundle, Plugin, Query, Res, ResMut, StandardMaterial,
         Transform, Vec3,
     },
     utils::HashMap,
@@ -16,7 +16,7 @@ use crate::{
     },
     resource::{FoodSource, WaterSource},
     utils::lerp_range,
-    AppStage,
+    WorldCreationSet,
 };
 
 pub(crate) struct FloraPlugin;
@@ -25,12 +25,9 @@ pub(crate) struct FloraPlugin;
 impl Plugin for FloraPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnFlora>()
-            .add_startup_system_to_stage(AppStage::SpawnFlora, generate_flora)
-            .add_startup_system_to_stage(AppStage::SpawnFlora, spawn_water)
-            .add_system(grow_flora)
-            .add_system(scale_flora.after(grow_flora))
-            .add_system(spread_flora.after(grow_flora))
-            .add_system(spawn_flora.after(spread_flora));
+            .add_systems((generate_flora, spawn_water).in_set(WorldCreationSet::SpawnFlora))
+            .add_systems((grow_flora, spread_flora, spawn_flora).chain())
+            .add_system(scale_flora.after(grow_flora));
     }
 }
 

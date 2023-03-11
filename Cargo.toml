@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.9"
-big-brain = "0.16.0"
-bevy_turborand = "0.4.3"
+bevy = "0.10"
+big-brain = "0.17"
+bevy_turborand = "0.5"
 bevy_mod_picking = "0.11"
-leafwing-input-manager = "0.8.0"
+leafwing-input-manager = "0.9"
 bracket-pathfinding = "0.8.7"
-bevy_prototype_debug_lines = { version = "0.9", features = ["3d"] }
+bevy_prototype_debug_lines = { version = "0.10", features = ["3d"] }
