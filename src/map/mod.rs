@@ -342,10 +342,10 @@ mod tests {
                 TileType::Grass,
                 TileType::Dirt,
                 TileType::Rock,
-                TileType::Lava,
+                TileType::DeepWater,
                 TileType::Water,
                 TileType::Water,
-                TileType::Lava,
+                TileType::DeepWater,
             ],
             settings,
         };

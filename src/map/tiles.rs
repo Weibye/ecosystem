@@ -29,12 +29,12 @@ pub(crate) enum TileType {
     Dirt,
     Rock,
     Water,
-    Lava,
+    DeepWater,
 }
 
 impl TileType {
     pub(crate) fn is_walkable(&self) -> bool {
-        !matches!(self, TileType::Lava)
+        !matches!(self, TileType::DeepWater)
     }
 
     pub(crate) fn is_growable(&self) -> bool {
@@ -73,6 +73,6 @@ pub(crate) fn get_color(tile_type: TileType) -> Color {
         TileType::Dirt => Color::rgb(0.55, 0.5, 0.3),
         TileType::Rock => Color::rgb(0.5, 0.5, 0.5),
         TileType::Water => Color::rgb(0.0, 0.4, 0.6),
-        TileType::Lava => Color::rgb(1.0, 0.4, 0.0),
+        TileType::DeepWater => Color::rgb(0.0, 0.2, 0.7),
     }
 }
