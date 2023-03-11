@@ -1,8 +1,14 @@
+use std::f32::consts::PI;
+
 use agent::actions::{MoveAbility, MovementPath};
 use bevy::prelude::*;
+use bevy_atmosphere::{
+    prelude::{AtmosphereModel, AtmospherePlugin, Nishita},
+    system_param::AtmosphereMut,
+};
 use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
 use bevy_turborand::{DelegatedRng, GlobalRng, RngPlugin};
-use chronos::ChronoPlugin;
+use chronos::{Chrono, ChronoPlugin};
 use fauna::{FaunaPlugin, SpawnFauna};
 use flora::FloraPlugin;
 use map::{
@@ -12,6 +18,7 @@ use map::{
 };
 use player::PlayerPlugin;
 use resource::ResourcePlugin;
+use utils::lerp;
 
 mod agent;
 mod chronos;
@@ -60,45 +67,205 @@ fn main() {
         .add_plugin(ResourcePlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(ChronoPlugin)
+        .insert_resource(Msaa { samples: 4 })
+        .insert_resource(AtmosphereModel::default())
+        .add_plugin(AtmospherePlugin)
         .add_startup_system_to_stage(AppStage::SpawnMap, setup)
         .add_system(draw_paths)
         .add_system(update_tile_pos)
+        .add_system(daylight_cycle)
         .run();
 }
+
+#[derive(Component)]
+struct Sun;
+
+#[derive(Component)]
+struct Moon;
+
+#[derive(Component)]
+struct SkyRoot;
+// Elevation over time
+// Azimuuth over time (0 -> 360)
+// This will affect where shadows are
+// luminance / strength
+// how much sunlight / energy is transferred to the tiles / plants?
 
 fn setup(
     mut cmd: Commands,
     mut rng: ResMut<GlobalRng>,
-    mut writer: EventWriter<SpawnFauna>,
-    map: Res<Map>,
+    // mut writer: EventWriter<SpawnFauna>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    // map: Res<Map>,
 ) {
+    const RADIUS: f32 = 9.0;
+    // Sun starts straight below at 00:00
+    const SUN_POSITION: Vec3 = Vec3::new(0.0, -RADIUS, 0.0);
+    // Moon starts straight above at 00:00
+    const MOON_POSITION: Vec3 = Vec3::new(0.0, RADIUS, 0.0);
+
     // ambient light
     cmd.insert_resource(AmbientLight {
-        color: Color::ORANGE_RED,
-        brightness: 0.04,
+        color: Color::WHITE,
+        brightness: 0.03,
     });
 
-    // Spawn light
-    cmd.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            illuminance: 10_000.0,
-            shadows_enabled: true,
+    cmd.spawn((
+        PbrBundle {
+            // SpatialBundle {
+            transform: Transform::from_rotation(
+                Quat::IDENTITY,
+                // Quat::from_axis_angle(Vec3::Z, 45.0 * PI / 180.0),
+            ),
+            mesh: meshes.add(Mesh::from(shape::Plane::default())),
             ..default()
         },
-        transform: Transform::from_xyz(-10.0, 20.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+        SkyRoot,
+    ))
+    .with_children(|root| {
+        root.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Icosphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::rgba(1.0, 0.0, 0.0, 0.5),
+                    emissive: Color::YELLOW,
+                    unlit: true,
+                    alpha_mode: AlphaMode::Blend,
+                    ..default()
+                }),
+                transform: Transform::from_translation(SUN_POSITION),
 
-    writer.send(SpawnFauna(Some(
-        map.rand_from_query(
-            rng.get_mut(),
-            &TileQuery {
-                walkable: Some(true),
                 ..default()
             },
-        )
-        .unwrap(),
-    )));
+            Sun,
+        ));
+        root.spawn((
+            DirectionalLightBundle {
+                directional_light: DirectionalLight {
+                    illuminance: 10_000.0,
+                    shadows_enabled: true,
+                    ..default()
+                },
+                transform: Transform::from_translation(SUN_POSITION).looking_at(Vec3::Y, Vec3::Z),
+                ..default()
+            },
+            Sun,
+        ));
+
+        root.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Icosphere {
+                    radius: 0.5,
+                    ..default()
+                })),
+                material: materials.add(Color::BLUE.into()),
+                transform: Transform::from_translation(MOON_POSITION),
+                ..default()
+            },
+            Moon,
+        ));
+
+        root.spawn((
+            DirectionalLightBundle {
+                directional_light: DirectionalLight {
+                    illuminance: 5000.0,
+                    shadows_enabled: true,
+                    color: Color::rgb(0.3, 0.5, 0.3),
+                    ..default()
+                },
+                transform: Transform::from_translation(MOON_POSITION)
+                    .looking_at(-Vec3::Y, -Vec3::Z),
+                ..default()
+            },
+            Moon,
+        ));
+    });
+
+    // writer.send(SpawnFauna(Some(
+    //     map.rand_from_query(
+    //         rng.get_mut(),
+    //         &TileQuery {
+    //             walkable: Some(true),
+    //             ..default()
+    //         },
+    //     )
+    //     .unwrap(),
+    // )));
+}
+
+fn daylight_cycle(
+    mut atmosphere: AtmosphereMut<Nishita>,
+    mut skyRoot: Query<&mut Transform, With<SkyRoot>>,
+    mut sunlight: Query<&mut DirectionalLight, (With<Sun>, Without<Moon>)>,
+    mut moonlight: Query<&mut DirectionalLight, (With<Moon>, Without<Sun>)>,
+    mut ambient: ResMut<AmbientLight>,
+    time: Res<Time>,
+    chrono: Res<Chrono>,
+) {
+    // TODO: just spawn a plane that is slightly tilted, then rotate that along its local axis.
+
+    let tilt_axis = Quat::from_axis_angle(Vec3::Z, 0.5 * PI) * Vec3::Y;
+
+    let t = (chrono.day_progression as f32 * 2.0 * PI); // - (PI / 2.0);
+
+    let sky_angle = lerp(chrono.day_progression, 0.0, 2.0 * std::f64::consts::PI) as f32; // + (2.0 / PI);
+
+    //let day_ambient = ambient.brightness
+    let mut light_modes = vec![
+        // Day
+        (
+            (0.262 * (chrono.day_progression as f32 * 24.0) - 1.5).sin(),
+            Vec4::new(1.0, 0.9, 1.0, 1.0),
+        ),
+        // Night
+        (
+            (0.262 * (chrono.day_progression as f32 * 24.0) + 1.5).sin(),
+            Vec4::new(0.3, 0.3, 1.0, 1.0),
+        ),
+        // Twilight
+        (
+            (0.262 * 2.0 * (chrono.day_progression as f32 * 24.0) - 1.5).sin(),
+            Vec4::new(1.0, 0.4, 0.0, 1.0),
+        ),
+    ];
+
+    light_modes.sort_by(|current, next| next.0.partial_cmp(&current.0).unwrap());
+
+    // ambient.brightness = light_modes.first().unwrap().0.max(0.0);
+
+    // ambient.color = light_modes.get(0).unwrap().1.lerp(light_modes.get(1).unwrap().1, 1.0).into();
+
+    //let ambient_night =  (0.262 * (chrono.day_progression as f32 * 24.0) + 1.5).sin();
+    //let ambient_twilight = (0.262 * 2.0 * (chrono.day_progression as f32 * 24.0) - 1.5).sin();
+
+    // if ambient_day > ambient_night && ambient_day > ambient_twilight {
+    //     ambient.brightness = ambient_day.max(0.0);
+    //     ambient.color = Color::rgb(1.0, 0.9, 1.0);
+    //     info!("Day");
+    // } else if ambient_night > ambient_day && ambient_night > ambient_twilight {
+    //     ambient.brightness = ambient_night.max(0.0);
+    //     ambient.color = Color::rgb(0.3, 0.3, 1.0);
+    //     info!("Night");
+    // } else {
+    //     ambient.brightness = ambient_twilight.max(0.0);
+    //     ambient.color = Color::rgb(1.0, 0.4, 0.0);
+    //     info!("Twilight");
+    // }
+
+    // ambient.brightness = (0.262 * (chrono.day_progression as f32 * 24.0) - 1.5).sin().max(0.0);
+
+    let mut transform = skyRoot.get_single_mut().unwrap();
+    // Rotate around its
+    transform.rotation = Quat::from_axis_angle(Vec3::Z, 45.0 * PI / 180.0)
+        * Quat::from_axis_angle(Vec3::X, sky_angle);
+
+    atmosphere.sun_position = transform.down();
+
+    // if let Some((mut transform, mut light)) = q.single_mut().into() {
+    //     transform.rotation = Quat::from_rotation_x(-t.sin().atan2(t.cos()));
+    //     light.illuminance = t.sin().max(0.0).powf(2.0) * 100_000.0;
+    // }
 }
 
 fn draw_paths(

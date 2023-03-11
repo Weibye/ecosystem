@@ -2,7 +2,7 @@
 
 use bevy::prelude::Vec3;
 use bracket_pathfinding::prelude::Point;
-use std::ops::Range;
+use std::ops::{Add, Div, Mul, Range, Sub};
 
 /// From a set of points, return whichever point is closest to the target.
 #[allow(dead_code)]
@@ -19,8 +19,17 @@ pub(crate) fn closest(points: &mut dyn Iterator<Item = Vec3>, target: Vec3) -> V
 /// Linearly interpolates between two values.
 ///
 /// Value should be in range 0..=1.
-pub(crate) fn lerp(value: f32, min: f32, max: f32) -> f32 {
+pub(crate) fn lerp<T>(value: T, min: T, max: T) -> T
+where
+    T: Add<Output = T> + Sub<Output = T> + Mul<Output = T> + Copy,
+{
     min + value * (max - min)
+}
+pub(crate) fn inverse_lerp<T>(value: T, min: T, max: T) -> T
+where
+    T: Sub<Output = T> + Div<Output = T> + Copy,
+{
+    (value - min) / (max - min)
 }
 
 /// Linearly interpolates between two values.

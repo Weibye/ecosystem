@@ -2,6 +2,7 @@ use bevy::prelude::{
     default, info, shape, App, Assets, Camera3dBundle, Color, Commands, EventWriter, KeyCode, Mesh,
     PbrBundle, Plugin, Query, ResMut, StandardMaterial,
 };
+use bevy_atmosphere::prelude::AtmosphereCamera;
 use bevy_mod_picking::{DefaultPickingPlugins, PickingCameraBundle, Selection};
 use leafwing_input_manager::{
     axislike::VirtualAxis,
@@ -134,6 +135,7 @@ fn spawn_player(
             ..default()
         },
         CameraController::new(target),
+        AtmosphereCamera::default(),
     ));
 }
 

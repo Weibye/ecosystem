@@ -7,10 +7,11 @@ use bevy::{
         Component, EventWriter, NodeBundle, Plugin, Query, Res, TextBundle, With,
     },
     text::{Text, TextStyle},
+    time::Time,
     ui::{AlignItems, Interaction, JustifyContent, Size, Style, UiRect, Val},
 };
 
-use crate::chronos::{Chrono, SimulationSpeed, TimeMultiplier, TimeMultiplierEvent};
+use crate::chronos::{Chrono, SimulationSpeed, TimeMultiplierEvent};
 
 pub(crate) struct UserInterfacePlugin;
 
@@ -310,7 +311,7 @@ fn update_hour_label(mut q: Query<&mut Text, With<HourLabel>>, chrono: Res<Chron
 
 fn update_day_label(mut q: Query<&mut Text, With<DayLabel>>, chrono: Res<Chrono>) {
     for mut text in &mut q {
-        text.sections[0].value = format!("{:?}", chrono.day);
+        text.sections[0].value = format!("{:?}", chrono.day_progression);
     }
 }
 
@@ -320,8 +321,8 @@ fn update_year_label(mut q: Query<&mut Text, With<YearLabel>>, chrono: Res<Chron
     }
 }
 
-fn update_speed_label(mut q: Query<&mut Text, With<SpeedLabel>>, multiplier: Res<TimeMultiplier>) {
+fn update_speed_label(mut q: Query<&mut Text, With<SpeedLabel>>, time: Res<Time>) {
     for mut text in &mut q {
-        text.sections[0].value = format!("{:?}x", multiplier.value());
+        text.sections[0].value = format!("{:?}x", time.relative_speed());
     }
 }

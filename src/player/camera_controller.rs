@@ -145,7 +145,7 @@ fn update_camera_position(
             let zoom_amount = lerp_range(controller.zoom, &settings.zoom);
             let horizontal_rotation = Quat::from_axis_angle(Vec3::Y, controller.rotation);
             let vertical_rotation =
-                Quat::from_axis_angle(Vec3::X, lerp(controller.zoom, 0.1 * PI, 0.3 * PI));
+                Quat::from_axis_angle(Vec3::X, lerp(controller.zoom, -0.3 * PI, 0.3 * PI));
 
             transform.translation = target_transform.translation
                 + horizontal_rotation * vertical_rotation * -Vec3::Z * zoom_amount;
