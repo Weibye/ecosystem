@@ -197,7 +197,7 @@ fn spawn_water(
 ) {
     info!("spawning water");
     for n in 0..map.tiles.len() {
-        if map.tiles[n] == TileType::Water {
+        if map.tiles[n] == TileType::ShallowWater {
             cmd.spawn((
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),

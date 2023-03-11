@@ -28,7 +28,7 @@ pub(crate) enum TileType {
     Grass,
     Dirt,
     Rock,
-    Water,
+    ShallowWater,
     DeepWater,
 }
 
@@ -72,7 +72,7 @@ pub(crate) fn get_color(tile_type: TileType) -> Color {
         TileType::Grass => Color::rgb(0.1, 0.7, 0.25),
         TileType::Dirt => Color::rgb(0.55, 0.5, 0.3),
         TileType::Rock => Color::rgb(0.5, 0.5, 0.5),
-        TileType::Water => Color::rgb(0.0, 0.4, 0.6),
+        TileType::ShallowWater => Color::rgb(0.0, 0.4, 0.6),
         TileType::DeepWater => Color::rgb(0.0, 0.2, 0.7),
     }
 }
