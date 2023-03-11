@@ -198,7 +198,7 @@ mod tests {
             };
 
             let rand_point = map.rand_from_query(rng.get_mut(), &query);
-            assert_eq!(map.index_exist(rand_point.unwrap().0), true);
+            assert!(map.index_exist(rand_point.unwrap().0));
         }
     }
 
@@ -219,7 +219,7 @@ mod tests {
 
         let map = Map {
             tiles: vec![TileType::Grass; settings.width as usize * settings.height as usize],
-            settings: settings,
+            settings,
         };
 
         let top_left = map.get_neighbours(0);
