@@ -27,6 +27,7 @@ impl Plugin for FloraPlugin {
         app.add_event::<SpawnFlora>()
             .add_startup_system_to_stage(AppStage::SpawnFlora, generate_flora)
             .add_startup_system_to_stage(AppStage::SpawnFlora, spawn_water)
+            // TODO: This should be a fixed time step
             .add_system(grow_flora)
             .add_system(scale_flora.after(grow_flora))
             .add_system(spread_flora.after(grow_flora))
