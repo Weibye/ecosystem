@@ -442,7 +442,6 @@ dependencies = [
  "bevy_tasks 0.9.1",
  "bevy_utils 0.9.1",
  "bytemuck",
- "serde",
 ]
 
 [[package]]
@@ -458,6 +457,7 @@ dependencies = [
  "bevy_tasks 0.10.0",
  "bevy_utils 0.10.0",
  "bytemuck",
+ "serde",
 ]
 
 [[package]]
@@ -637,19 +637,6 @@ dependencies = [
 
 [[package]]
 name = "bevy_gilrs"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4af552dad82f854b2fae24f36a389fd8ee99d65fe86ae876e854e70d53ff16d9"
-dependencies = [
- "bevy_app 0.9.1",
- "bevy_ecs 0.9.1",
- "bevy_input 0.9.1",
- "bevy_utils 0.9.1",
- "gilrs",
-]
-
-[[package]]
-name = "bevy_gilrs"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "905e547d213e368f997d08f140f4e893923c7dce4760bf0fb63401232262fa79"
@@ -759,7 +746,6 @@ dependencies = [
  "bevy_math 0.9.1",
  "bevy_reflect 0.9.1",
  "bevy_utils 0.9.1",
- "serde",
  "thiserror",
 ]
 
@@ -774,6 +760,7 @@ dependencies = [
  "bevy_math 0.10.0",
  "bevy_reflect 0.10.0",
  "bevy_utils 0.10.0",
+ "serde",
  "thiserror",
 ]
 
@@ -790,7 +777,6 @@ dependencies = [
  "bevy_derive 0.9.1",
  "bevy_diagnostic 0.9.1",
  "bevy_ecs 0.9.1",
- "bevy_gilrs 0.9.1",
  "bevy_gltf 0.9.1",
  "bevy_hierarchy 0.9.1",
  "bevy_input 0.9.1",
@@ -827,7 +813,7 @@ dependencies = [
  "bevy_derive 0.10.0",
  "bevy_diagnostic 0.10.0",
  "bevy_ecs 0.10.0",
- "bevy_gilrs 0.10.0",
+ "bevy_gilrs",
  "bevy_gltf 0.10.0",
  "bevy_hierarchy 0.10.0",
  "bevy_input 0.10.0",
@@ -1386,7 +1372,6 @@ dependencies = [
  "bevy_reflect 0.9.1",
  "bevy_utils 0.9.1",
  "crossbeam-channel",
- "serde",
 ]
 
 [[package]]
@@ -1400,6 +1385,7 @@ dependencies = [
  "bevy_reflect 0.10.0",
  "bevy_utils 0.10.0",
  "crossbeam-channel",
+ "serde",
  "thiserror",
 ]
 
@@ -1414,7 +1400,6 @@ dependencies = [
  "bevy_hierarchy 0.9.1",
  "bevy_math 0.9.1",
  "bevy_reflect 0.9.1",
- "serde",
 ]
 
 [[package]]
@@ -1428,6 +1413,7 @@ dependencies = [
  "bevy_hierarchy 0.10.0",
  "bevy_math 0.10.0",
  "bevy_reflect 0.10.0",
+ "serde",
 ]
 
 [[package]]
@@ -1555,7 +1541,6 @@ dependencies = [
  "bevy_reflect 0.9.1",
  "bevy_utils 0.9.1",
  "raw-window-handle",
- "serde",
 ]
 
 [[package]]
@@ -1571,6 +1556,7 @@ dependencies = [
  "bevy_reflect 0.10.0",
  "bevy_utils 0.10.0",
  "raw-window-handle",
+ "serde",
 ]
 
 [[package]]
@@ -2783,24 +2769,25 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "leafwing-input-manager"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb82c6ee7d41f195f9384497dcee11bde691d07c1703667724de8afdf67ae987"
+checksum = "fd149c23a439a4e15e53571940092cb329e447de43f9841830f294f83b8402d9"
 dependencies = [
- "bevy 0.9.1",
+ "bevy 0.10.0",
  "derive_more",
  "fixedbitset",
  "itertools",
  "leafwing_input_manager_macros",
+ "once_cell",
  "petitset",
  "serde",
 ]
 
 [[package]]
 name = "leafwing_input_manager_macros"
-version = "0.7.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ec3d0a4b25f0e6a66547cc3a1eb98b8477814db58de8035063f3db42353a7de"
+checksum = "11aefabfcc9ef0a78bc97eea053d2f1bb050d5278a4134bdc1b769064a90064a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -3261,9 +3248,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.16.0"
+version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86f0b0d4bf799edbc74508c1e8bf170ff5f41238e5f8225603ca7caaae2b7860"
+checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
 
 [[package]]
 name = "orbclient"
