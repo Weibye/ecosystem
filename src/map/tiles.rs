@@ -33,12 +33,26 @@ pub(crate) enum TileType {
 }
 
 impl TileType {
+    /// True if this tile is walkable by an agent.
     pub(crate) fn is_walkable(&self) -> bool {
         !matches!(self, TileType::DeepWater)
     }
 
+    /// True if this tile can have flora growing on it.
+    /// TODO: Replace with a more granular system.
     pub(crate) fn is_growable(&self) -> bool {
         matches!(self, TileType::Grass | TileType::Sand)
+    }
+
+    /// How much will it cost the agent to move over this area?
+    pub(crate) fn movement_cost(&self) -> f32 {
+        match self {
+            TileType::Grass => 1.0,
+            TileType::Dirt => 2.0,
+            TileType::Rock => 3.0,
+            TileType::Water => 5.0,
+            TileType::Lava => 10.0,
+        }
     }
 }
 /// Converts from a tile-position to a world-position.
