@@ -4,6 +4,7 @@ use bevy::prelude::{
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
+use noise::{NoiseFn, Perlin};
 
 use crate::AppStage;
 
@@ -50,19 +51,34 @@ fn seed_map(mut cmd: Commands, settings: Res<MapSettings>, mut rng: ResMut<Globa
     cmd.insert_resource(generate_map(&settings, &mut rng));
 }
 
+const SCALE: f64 = 3.5;
+
+/// Generates the map data
 pub(crate) fn generate_map(settings: &MapSettings, rng: &mut GlobalRng) -> Map {
     let mut tiles: Vec<TileType> = vec![];
 
-    for _ in 0..settings.width {
-        for _ in 0..settings.height {
-            let index = rng.get_mut().i32(0..=13);
-            tiles.push(match index {
-                0..=5 => TileType::Grass,
-                6..=8 => TileType::Dirt,
-                9 => TileType::Rock,
-                10..=12 => TileType::Water,
-                13 => TileType::Lava,
-                _ => panic!("Out of range"),
+    // Get a
+    let seed = rng.get_mut().u32(0..10_000);
+    let noise = Perlin::new(seed);
+
+    for x in 0..settings.width {
+        for y in 0..settings.height {
+            // Output is -1..=1
+            // Sampling must be done withing 0..=1 on X and Y
+            let noise_value = noise.get([
+                x as f64 * SCALE / settings.width as f64,
+                y as f64 * SCALE / settings.height as f64,
+            ]);
+            tiles.push(if noise_value > 0.9 {
+                TileType::Rock
+            } else if noise_value > 0.2 {
+                TileType::Grass
+            } else if noise_value > 0.0 {
+                TileType::Sand
+            } else if noise_value > -0.3 {
+                TileType::ShallowWater
+            } else {
+                TileType::DeepWater
             });
         }
     }

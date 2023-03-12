@@ -27,6 +27,7 @@ impl Plugin for FloraPlugin {
         app.add_event::<SpawnFlora>()
             .add_startup_system_to_stage(AppStage::SpawnFlora, generate_flora)
             .add_startup_system_to_stage(AppStage::SpawnFlora, spawn_water)
+            // TODO: This should be a fixed time step
             .add_system(grow_flora)
             .add_system(scale_flora.after(grow_flora))
             .add_system(spread_flora.after(grow_flora))
@@ -197,7 +198,7 @@ fn spawn_water(
 ) {
     info!("spawning water");
     for n in 0..map.tiles.len() {
-        if map.tiles[n] == TileType::Water {
+        if map.tiles[n] == TileType::ShallowWater {
             cmd.spawn((
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),

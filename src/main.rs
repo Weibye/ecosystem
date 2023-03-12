@@ -89,6 +89,7 @@ fn setup(
         ..default()
     });
 
+    // TODO: Inverse this dependency: App should emit a signal that Faunaplugin listens to.
     writer.send(SpawnFauna(Some(
         map.rand_from_query(
             rng.get_mut(),
