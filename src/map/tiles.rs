@@ -23,6 +23,85 @@ impl From<MapIndex> for usize {
     }
 }
 
+/// Defines the data a tile can contain.
+pub(crate) struct TileData {
+    pub(crate) tile_type: TileType,
+    /// What is the base movement speed of this tile?
+    ///
+    /// This assumes only one form of movement.
+    pub(crate) movement_speed: f32,
+    /// How fast can flora grow on this tile?
+    pub(crate) growability: f32,
+    /// How wet is this tile?
+    #[allow(dead_code)]
+    moisture: f32,
+    /// How much light is this tile receiving at this moment?
+    #[allow(dead_code)]
+    brightness: f32,
+}
+
+// TODO: Move this to a file or asset
+
+const GRASS_DATA: TileData = TileData {
+    tile_type: TileType::Grass,
+    movement_speed: 1.0,
+    growability: 1.0,
+    moisture: 0.7,
+    brightness: 0.0,
+};
+const SAND_DATA: TileData = TileData {
+    tile_type: TileType::Sand,
+    movement_speed: 0.9,
+    growability: 0.8,
+    moisture: 0.5,
+    brightness: 0.0,
+};
+const ROCK_DATA: TileData = TileData {
+    tile_type: TileType::Rock,
+    movement_speed: 0.8,
+    growability: 0.1,
+    moisture: 0.0,
+    brightness: 0.0,
+};
+const SHALLOW_WATER_DATA: TileData = TileData {
+    tile_type: TileType::ShallowWater,
+    movement_speed: 0.3,
+    growability: 0.0,
+    moisture: 1.0,
+    brightness: 0.0,
+};
+const DEEP_WATER_DATA: TileData = TileData {
+    tile_type: TileType::DeepWater,
+    movement_speed: 0.0,
+    growability: 0.0,
+    moisture: 1.0,
+    brightness: 0.0,
+};
+
+pub(crate) const fn get_data(tile_type: &TileType) -> TileData {
+    match tile_type {
+        TileType::Grass => GRASS_DATA,
+        TileType::Sand => SAND_DATA,
+        TileType::Rock => ROCK_DATA,
+        TileType::ShallowWater => SHALLOW_WATER_DATA,
+        TileType::DeepWater => DEEP_WATER_DATA,
+    }
+}
+
+pub(crate) fn resolve_type(value: f64) -> TileType {
+    if value > 0.9 {
+        TileType::Rock
+    } else if value > 0.2 {
+        TileType::Grass
+    } else if value > 0.0 {
+        TileType::Sand
+    } else if value > -0.3 {
+        TileType::ShallowWater
+    } else {
+        TileType::DeepWater
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub(crate) enum TileType {
     Grass,
@@ -30,16 +109,6 @@ pub(crate) enum TileType {
     Rock,
     ShallowWater,
     DeepWater,
-}
-
-impl TileType {
-    pub(crate) fn is_walkable(&self) -> bool {
-        !matches!(self, TileType::DeepWater)
-    }
-
-    pub(crate) fn is_growable(&self) -> bool {
-        matches!(self, TileType::Grass | TileType::Sand)
-    }
 }
 /// Converts from a tile-position to a world-position.
 pub(crate) fn pos_to_world(pos: Vec2<i32>, settings: &MapSettings) -> Vec3 {
