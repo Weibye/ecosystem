@@ -29,7 +29,7 @@ impl Algorithm2D for Map {
 impl BaseMap for Map {
     // Anything that is walls or completely blocking.
     fn is_opaque(&self, _idx: usize) -> bool {
-        !self.tiles[_idx].is_walkable()
+        !self.is_walkable(&_idx)
     }
 
     fn get_available_exits(&self, _idx: usize) -> SmallVec<[(usize, f32); 10]> {
@@ -71,7 +71,6 @@ impl BaseMap for Map {
 
 #[cfg(test)]
 mod tests {
-    use bevy_turborand::GlobalRng;
     use bracket_pathfinding::prelude::Point;
 
     use crate::map::plugin::{generate_map, MapSettings};
@@ -84,9 +83,7 @@ mod tests {
             tile_size: 1.0,
         };
 
-        let mut rng = GlobalRng::new();
-
-        let map = generate_map(&settings, &mut rng);
+        let map = generate_map(&settings, 0);
 
         let result = map.valid_exit(Point { x: 0, y: 0 }, Point { x: -1, y: -1 });
         assert_eq!(result, None);

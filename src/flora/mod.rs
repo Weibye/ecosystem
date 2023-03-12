@@ -95,7 +95,7 @@ fn spread_flora(q: Query<(&Flora, &MapIndex)>, map: Res<Map>, mut event: EventWr
             ..default()
         })
         .iter()
-        .map(|(index, _)| *index)
+        .map(|index| **index)
         .collect();
 
     let mut spread_score: Vec<(usize, f32)> = vec![];
@@ -181,10 +181,10 @@ fn generate_flora(
         ..default()
     });
 
-    for (index, _) in tiles {
+    for index in tiles {
         if rng.f32() * 100.0 > 80.0 {
             info!("Generating flora for tile {:?}", index);
-            event.send(SpawnFlora(index));
+            event.send(SpawnFlora(*index));
         }
     }
 }
@@ -197,8 +197,8 @@ fn spawn_water(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     info!("spawning water");
-    for n in 0..map.tiles.len() {
-        if map.tiles[n] == TileType::ShallowWater {
+    for n in 0..map.data.len() {
+        if map.data[&n].tile_type == TileType::ShallowWater {
             cmd.spawn((
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),

@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use bevy::prelude::{Resource, Vec3};
 use bevy_turborand::{rng::Rng, TurboRand};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, Point, SmallVec};
 
 use self::{
     plugin::MapSettings,
-    tiles::{pos_to_world, MapIndex, TileType},
+    tiles::{pos_to_world, MapIndex, TileData, TileType},
 };
 
 pub(crate) mod pathfinding;
@@ -22,39 +24,47 @@ pub(crate) struct TileQuery {
 
 #[derive(Resource)]
 pub(crate) struct Map {
-    pub(crate) tiles: Vec<TileType>,
+    pub(crate) indexes: HashMap<usize, Point>,
+    pub(crate) data: HashMap<usize, TileData>,
     pub(crate) settings: MapSettings,
 }
 
 impl Map {
+    pub(crate) fn is_walkable(&self, index: &usize) -> bool {
+        self.data[index].movement_speed > 0.0
+    }
+
+    pub(crate) fn is_growable(&self, index: &usize) -> bool {
+        self.data[index].growability > 0.0
+    }
+
     pub(crate) fn index_to_world(&self, index: MapIndex) -> Vec3 {
         pos_to_world(self.index_to_point2d(index.into()).into(), &self.settings)
     }
 
     /// Queries for a collection of tiles from the map.
-    pub(crate) fn query(&self, query: &TileQuery) -> Vec<(usize, &TileType)> {
-        self.tiles
+    pub(crate) fn query(&self, query: &TileQuery) -> Vec<&usize> {
+        self.data
             .iter()
-            .enumerate()
             // Filter by range
             .filter(|(i, _)| {
                 if let Some((distance, origin)) = query.distance {
-                    self.get_pathing_distance(*i, origin) < distance
+                    self.get_pathing_distance(**i, origin) < distance
                 } else {
                     true
                 }
             })
             // Filter by walkable
-            .filter(|(_, e)| {
+            .filter(|(i, _)| {
                 if let Some(walkable) = query.walkable {
-                    e.is_walkable() == walkable
+                    self.is_walkable(i) == walkable
                 } else {
                     true
                 }
             })
-            .filter(|(_, e)| {
+            .filter(|(i, _)| {
                 if let Some(growable) = query.growable {
-                    e.is_growable() == growable
+                    self.is_growable(i) == growable
                 } else {
                     true
                 }
@@ -68,11 +78,12 @@ impl Map {
             })
             .filter(|(_, e)| {
                 if let Some(types) = &query.types {
-                    types.contains(e)
+                    types.contains(&e.tile_type)
                 } else {
                     true
                 }
             })
+            .map(|(i, _)| i)
             .collect()
     }
 
@@ -87,13 +98,13 @@ impl Map {
             let mut include = true;
             // Filter tile
             if let Some(walkable) = query.walkable {
-                include = self.tiles[index].is_walkable() == walkable;
+                include = self.is_walkable(&index) == walkable;
             }
             if let Some(growable) = query.growable {
-                include = self.tiles[index].is_growable() == growable;
+                include = self.is_growable(&index) == growable;
             }
             if let Some(types) = &query.types {
-                include = types.contains(&self.tiles[index]);
+                include = types.contains(&self.data[&index].tile_type);
             }
 
             if include {
@@ -112,15 +123,15 @@ impl Map {
             None
         } else {
             // Grab a random from the list
-            let (index, _) = result[rng.usize(0..result.len())];
-            Some(index.into())
+            let index = result[rng.usize(0..result.len())];
+            Some(<usize as Into<MapIndex>>::into(*index))
         }
     }
 
     /// Returns true if the index exists on the map.
     #[allow(dead_code)]
     pub(crate) fn index_exist(&self, index: usize) -> bool {
-        (0..self.tiles.len()).contains(&index)
+        (0..self.data.len()).contains(&index)
     }
 
     pub(crate) fn get_neighbours(&self, index: usize) -> SmallVec<[usize; 10]> {
@@ -172,11 +183,7 @@ mod tests {
 
     use crate::map::TileQuery;
 
-    use super::{
-        plugin::{generate_map, MapSettings},
-        tiles::TileType,
-        Map,
-    };
+    use super::plugin::{generate_map, MapSettings};
 
     const SETTINGS: MapSettings = MapSettings {
         width: 8,
@@ -188,7 +195,7 @@ mod tests {
     fn no_invalid_random_points() {
         let mut rng = GlobalRng::new();
 
-        let map = generate_map(&SETTINGS, &mut rng);
+        let map = generate_map(&SETTINGS, 0);
 
         for n in 0..8 * 8 {
             let query = TileQuery {
@@ -217,10 +224,7 @@ mod tests {
             tile_size: 1.0,
         };
 
-        let map = Map {
-            tiles: vec![TileType::Grass; settings.width as usize * settings.height as usize],
-            settings,
-        };
+        let map = generate_map(&settings, 0);
 
         let top_left = map.get_neighbours(0);
         assert!(!top_left.contains(&0));
@@ -335,20 +339,7 @@ mod tests {
             tile_size: 1.0,
         };
 
-        let map = Map {
-            tiles: vec![
-                TileType::Grass,
-                TileType::Grass,
-                TileType::Grass,
-                TileType::Sand,
-                TileType::Rock,
-                TileType::DeepWater,
-                TileType::ShallowWater,
-                TileType::ShallowWater,
-                TileType::DeepWater,
-            ],
-            settings,
-        };
+        let map = generate_map(&settings, 0);
 
         let result = map.query_neighbours(4, &TileQuery::default());
         // Should fetch all neighbours except self.
