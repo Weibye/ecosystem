@@ -6,6 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Workspace
+pathfinding = { path = "./pathfinding" }
+
 # Bevy crates
 bevy = "0.9"
 big-brain = "0.16.0"
@@ -14,6 +17,10 @@ bevy_mod_picking = "0.11"
 leafwing-input-manager = "0.8.0"
 bevy_prototype_debug_lines = { version = "0.9", features = ["3d"] }
 
+
 # Non Bevy Crates
 bracket-pathfinding = "0.8.7"
 noise = "0.8"
+
+[workspace]
+members = ["pathfinding"]

@@ -1361,6 +1361,7 @@ dependencies = [
  "bracket-pathfinding",
  "leafwing-input-manager",
  "noise",
+ "pathfinding",
 ]
 
 [[package]]
@@ -2450,6 +2451,10 @@ dependencies = [
  "smallvec",
  "windows-sys 0.42.0",
 ]
+
+[[package]]
+name = "pathfinding"
+version = "0.1.0"
 
 [[package]]
 name = "peeking_take_while"
