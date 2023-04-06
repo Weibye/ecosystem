@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use pathfinding::{simple, AStar, Map, Position};
+use pathseeker::{simple, AStar, Map, Position};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let map = Map::new(16, 16);

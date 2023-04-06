@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # Workspace
-pathfinding = { path = "./pathfinding" }
+pathseeker = { path = "./pathseeker" }
 
 # Bevy crates
 bevy = "0.9"
@@ -23,4 +23,4 @@ bracket-pathfinding = "0.8.7"
 noise = "0.8"
 
 [workspace]
-members = ["pathfinding"]
+members = ["pathseeker"]

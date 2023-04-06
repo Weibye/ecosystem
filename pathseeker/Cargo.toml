@@ -1,7 +1,8 @@
 [package]
-name = "pathfinding"
+name = "pathseeker"
 version = "0.1.0"
 edition = "2021"
+author = "Andreas Weibye"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

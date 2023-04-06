@@ -1492,7 +1492,7 @@ dependencies = [
  "bracket-pathfinding",
  "leafwing-input-manager",
  "noise",
- "pathfinding",
+ "pathseeker",
 ]
 
 [[package]]
@@ -2639,7 +2639,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pathfinding"
+name = "pathseeker"
 version = "0.1.0"
 dependencies = [
  "criterion",
