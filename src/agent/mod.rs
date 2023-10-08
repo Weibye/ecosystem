@@ -1,4 +1,4 @@
-use bevy::prelude::{IntoSystemConfig, Plugin};
+use bevy::prelude::{IntoSystemConfigs, Plugin};
 use big_brain::{BigBrainPlugin, BigBrainSet};
 
 use self::{

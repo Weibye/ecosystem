@@ -1,6 +1,7 @@
 use bevy::prelude::{
-    default, shape, App, Assets, Color, Commands, Entity, EventReader, IntoSystemConfigs, Mesh,
-    PbrBundle, Plugin, Res, ResMut, StandardMaterial, SystemSet, Transform,
+    default, shape, App, Assets, Color, Commands, Entity, EventReader, IntoSystemConfig,
+    IntoSystemConfigs, Mesh, PbrBundle, Plugin, Res, ResMut, StandardMaterial, SystemSet,
+    Transform,
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng};

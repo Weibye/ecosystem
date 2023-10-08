@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    default, shape, App, Assets, Commands, Mesh, PbrBundle, Plugin, Res, ResMut, Resource,
-    StandardMaterial, Transform,
+    default, shape, App, Assets, Commands, IntoSystemConfig, Mesh, PbrBundle, Plugin, Res, ResMut,
+    Resource, StandardMaterial, Transform,
 };
 use bevy_mod_picking::PickableBundle;
 use bevy_turborand::{DelegatedRng, GlobalRng, TurboRand};
@@ -41,7 +41,7 @@ impl Plugin for MapPlugin {
             height: self.map_size.1,
         })
         .add_system(seed_map.in_set(WorldCreationSet::SeedMap))
-        .add_system(spawn_map.in_set(WorldCreationSet::SpawnMap))
+        .add_system(spawn_map.in_set(WorldCreationSet::SpawnMap));
     }
 }
 

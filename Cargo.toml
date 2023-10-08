@@ -9,7 +9,7 @@ edition = "2021"
 bevy = "0.10"
 big-brain = "0.17"
 bevy_turborand = "0.5"
-bevy_mod_picking = "0.11"
+bevy_mod_picking = "0.12"
 leafwing-input-manager = "0.9"
 bracket-pathfinding = "0.8.7"
 bevy_prototype_debug_lines = { version = "0.10", features = ["3d"] }
